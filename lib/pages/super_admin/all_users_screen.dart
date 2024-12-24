@@ -5,6 +5,15 @@ import 'package:groceryease_delivery_application/pages/user/profile.dart';
 class AllUsersScreen extends StatelessWidget {
   const AllUsersScreen({super.key});
 
+  // Function to delete user from Firebase
+  Future<void> deleteUser(String userId) async {
+    try {
+      await FirebaseFirestore.instance.collection("users").doc(userId).delete();
+    } catch (e) {
+      print("Error deleting user: $e");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
@@ -20,13 +29,46 @@ class AllUsersScreen extends StatelessWidget {
                   child: ListTile(
                     leading: Text("${index + 1}"),
                     title: Text(data["name"]),
+                    subtitle: Text(data["email"] ?? "No email"),
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        // Confirm before deletion
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text("Delete User"),
+                              content: Text("Do you want to delete this user?"),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text("Cancel"),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    await deleteUser(data["id"]);
+                                    Navigator.of(context).pop();
+                                  },
+                                  child: Text("Delete"),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
                     onTap: () {
                       Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => Profile(
-                                    userId: data["id"],
-                                  )));
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Profile(
+                            userId: data["id"],
+                          ),
+                        ),
+                      );
                     },
                   ),
                 );

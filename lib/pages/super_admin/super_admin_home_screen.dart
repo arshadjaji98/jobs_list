@@ -31,11 +31,11 @@ class _SuperAdminHomeScreenState extends State<SuperAdminHomeScreen> {
               icon: Icon(Icons.logout),
             )
           ],
-          bottom: const TabBar(
+          bottom: TabBar(
             tabs: [
               Tab(icon: Icon(CupertinoIcons.person), text: 'Users'),
               Tab(icon: Icon(CupertinoIcons.shield), text: 'Admin'),
-              Tab(icon: Icon(CupertinoIcons.shield), text: 'All Products'),
+              Tab(icon: Icon(Icons.store), text: 'All Products'),
             ],
           ),
         ),

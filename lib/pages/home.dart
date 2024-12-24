@@ -35,7 +35,7 @@ class _HomeState extends State<Home> {
   List<String> types = [
     "Fruit",
     "Meat",
-    "Bakery",
+    "Backery",
     "Beverages",
     "Oil",
     "Vegetables",

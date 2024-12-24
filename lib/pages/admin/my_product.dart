@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:groceryease_delivery_application/widgets/utills.dart';
 
 class MyProducts extends StatefulWidget {
   const MyProducts({super.key});
@@ -11,12 +12,16 @@ class MyProducts extends StatefulWidget {
 
 class _MyProductsState extends State<MyProducts> {
   String? selectedCategory;
-  final List<String> categories = [
-    'Fruit',
-    'Meat',
-    'Beverages',
-    'Bakery',
-    'Oil'
+  List<String> categories = [
+    "Fruit",
+    "Meat",
+    "Bakery",
+    "Beverages",
+    "Oil",
+    "Vegetables",
+    "Dry Fruits",
+    "Snacks",
+    "Honey"
   ];
 
   @override
@@ -35,7 +40,6 @@ class _MyProductsState extends State<MyProducts> {
               hint: const Text("Select Category"),
               value: selectedCategory,
               isExpanded: true,
-              padding: const EdgeInsets.only(left: 10),
               onChanged: (value) {
                 setState(() {
                   selectedCategory = value;
@@ -63,11 +67,12 @@ class _MyProductsState extends State<MyProducts> {
                   }
                   if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
                     return Center(
-                        child: Text(
-                      "No items found",
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ));
+                      child: Text(
+                        "No items found",
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    );
                   }
 
                   var foodItems = snapshot.data!.docs;
@@ -89,8 +94,18 @@ class _MyProductsState extends State<MyProducts> {
                             : const Icon(Icons.fastfood),
                         title: Text(foodItem['name']),
                         subtitle: Text("Rs. " + foodItem['price'].toString()),
-                        trailing:
-                            Text("Quantity " + foodItem["quantity"].toString()),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text("Qty: " + foodItem["quantity"].toString()),
+                            IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.blue),
+                              onPressed: () {
+                                _openEditDialog(context, foodItem);
+                              },
+                            ),
+                          ],
+                        ),
                       );
                     },
                   );
@@ -99,6 +114,66 @@ class _MyProductsState extends State<MyProducts> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _openEditDialog(BuildContext context, DocumentSnapshot foodItem) {
+    final TextEditingController nameController =
+        TextEditingController(text: foodItem['name']);
+    final TextEditingController priceController =
+        TextEditingController(text: foodItem['price'].toString());
+    final TextEditingController quantityController =
+        TextEditingController(text: foodItem['quantity'].toString());
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Edit Product"),
+        content: SingleChildScrollView(
+          child: Column(
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: "Product Name"),
+              ),
+              TextField(
+                controller: priceController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: "Price"),
+              ),
+              TextField(
+                controller: quantityController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: "Quantity"),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              FirebaseFirestore.instance
+                  .collection("products")
+                  .doc(foodItem.id)
+                  .update({
+                'name': nameController.text,
+                'price': double.tryParse(priceController.text) ?? 0.0,
+                'quantity': int.tryParse(quantityController.text) ?? 0,
+              }).then((value) {
+                Navigator.pop(context);
+                Utils.toastMessage("Product updated successfully!");
+              }).catchError((error) {
+                Utils.toastMessage("Failed to update product: $error");
+              });
+            },
+            child: const Text("Save"),
+          ),
+        ],
       ),
     );
   }

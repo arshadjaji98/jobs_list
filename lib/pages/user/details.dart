@@ -31,10 +31,17 @@ class Details extends StatefulWidget {
 class _DetailsState extends State<Details> {
   int count = 1;
   bool _isLoading = false;
+  late int totalPrice;
   void _addToCart() async {
     setState(() {
       _isLoading = true;
     });
+
+    @override
+    void initState() {
+      super.initState();
+      totalPrice = int.parse(widget.price);
+    }
 
     try {
       await FirebaseFirestore.instance
@@ -50,7 +57,7 @@ class _DetailsState extends State<Details> {
         "adminId": widget.adminId,
         "price": widget.price,
         "type": widget.type,
-        "count": 1,
+        "count": count,
       });
 
       // Show success message
@@ -65,6 +72,24 @@ class _DetailsState extends State<Details> {
     }
   }
 
+  void _updateCount(bool isIncrement) {
+    setState(() {
+      if (isIncrement) {
+        if (int.parse(widget.stock) >= count + 1) {
+          count++;
+          totalPrice = count * int.parse(widget.price);
+        } else {
+          Utils.toastMessage("Stock limit reached");
+        }
+      } else {
+        if (count > 1) {
+          count--;
+          totalPrice = count * int.parse(widget.price);
+        }
+      }
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -76,9 +101,9 @@ class _DetailsState extends State<Details> {
         body: Container(
             margin: EdgeInsets.only(top: 20),
             child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                   Stack(
                     children: [
                       CachedNetworkImage(
@@ -261,31 +286,6 @@ class _DetailsState extends State<Details> {
                   const SizedBox(height: 50),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Text("Delivery Time",
-                                style: AppWidgets.semiBoldTextFieldStyle()),
-                            const SizedBox(width: 25),
-                            Text("30 min",
-                                style: AppWidgets.semiBoldTextFieldStyle()),
-                            const SizedBox(width: 5),
-                            const Icon(Icons.alarm, color: Colors.black54),
-                          ],
-                        ),
-                        Column(
-                          children: [
-                            Text(widget.favourite.length.toString()),
-                          ],
-                        )
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 100),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -359,43 +359,98 @@ class _DetailsState extends State<Details> {
                                           border: Border.all(
                                               color: Colors.grey.shade300),
                                         ),
-                                        child: Column(
+                                        child: Stack(
                                           children: [
-                                            CachedNetworkImage(
-                                              imageUrl: product['image'],
-                                              height: 100,
-                                              width: 150,
-                                              fit: BoxFit.cover,
-                                              placeholder: (context, url) =>
-                                                  const Center(
-                                                child: SpinKitWave(
-                                                  color: Color(0XFF8a4af3),
-                                                  size: 20.0,
+                                            Column(
+                                              children: [
+                                                Positioned(
+                                                  bottom: 8,
+                                                  right: 8,
+                                                  child: GestureDetector(
+                                                    onTap: () async {
+                                                      try {
+                                                        await FirebaseFirestore
+                                                            .instance
+                                                            .collection("users")
+                                                            .doc(FirebaseAuth
+                                                                .instance
+                                                                .currentUser!
+                                                                .uid)
+                                                            .collection("card")
+                                                            .doc(widget.id)
+                                                            .set({
+                                                          "image": widget.image,
+                                                          "name": widget.name,
+                                                          "details":
+                                                              widget.details,
+                                                          "id": widget.id,
+                                                          "adminId":
+                                                              widget.adminId,
+                                                          "price": widget.price,
+                                                          "type": widget.type,
+                                                          "count": count,
+                                                        });
+
+                                                        // Show success message
+                                                        Utils.toastMessage(
+                                                            "This Product Added to Cart");
+                                                      } catch (e) {
+                                                        // Handle any errors
+                                                        Utils.toastMessage(
+                                                            "Failed to add product to cart: $e");
+                                                      } finally {
+                                                        setState(() {
+                                                          _isLoading = false;
+                                                        });
+                                                      }
+                                                    },
+                                                    child: Container(
+                                                      height: 36,
+                                                      width: 36,
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.green,
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                      child: const Icon(
+                                                          Icons.add,
+                                                          color: Colors.white),
+                                                    ),
+                                                  ),
                                                 ),
-                                              ),
-                                              errorWidget:
-                                                  (context, url, error) =>
+                                                CachedNetworkImage(
+                                                  imageUrl: product['image'],
+                                                  height: 100,
+                                                  width: 150,
+                                                  fit: BoxFit.cover,
+                                                  placeholder: (context, url) =>
+                                                      const Center(
+                                                    child: SpinKitWave(
+                                                      color: Color(0XFF8a4af3),
+                                                      size: 20.0,
+                                                    ),
+                                                  ),
+                                                  errorWidget: (context, url,
+                                                          error) =>
                                                       const Icon(Icons.error),
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.all(8.0),
-                                              child: Text(
-                                                product['name'],
-                                                style: AppWidgets
-                                                    .semiBoldTextFieldStyle(),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.all(8.0),
-                                              child: Text(
-                                                "Rs. ${product['price']}",
-                                                style: AppWidgets
-                                                    .lightTextFieldStyle(),
-                                              ),
+                                                ),
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
+                                                  child: Text(
+                                                    product['name'],
+                                                    style: AppWidgets
+                                                        .semiBoldTextFieldStyle(),
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  "Rs. ${product['price']}",
+                                                  style: AppWidgets
+                                                      .lightTextFieldStyle(),
+                                                ),
+                                              ],
                                             ),
                                           ],
                                         ),
@@ -411,52 +466,47 @@ class _DetailsState extends State<Details> {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: GestureDetector(
-                      onTap: _isLoading
-                          ? null
-                          : _addToCart, // Disable tap if loading
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Rs. " + widget.price,
-                            style: AppWidgets.boldTextFieldStyle(),
-                          ),
-                          Container(
-                            width: MediaQuery.of(context).size.width / 2,
-                            padding: const EdgeInsets.only(
-                              top: 10,
-                              bottom: 10,
-                              right: 5,
-                              left: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _isLoading
-                                  ? Colors.grey
-                                  : const Color(0XFF8a4af3),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Center(
-                              child: _isLoading
-                                  ? SpinKitCircle(size: 30, color: Colors.white)
-                                  : const Text(
-                                      "Add To Cart",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontFamily: 'Poppins',
-                                        fontSize: 20,
-                                      ),
-                                    ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                ],
-              ),
-            )));
+                      padding: const EdgeInsets.all(10),
+                      child: GestureDetector(
+                          onTap: _isLoading ? null : _addToCart,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Rs. " + widget.price,
+                                style: AppWidgets.boldTextFieldStyle(),
+                              ),
+                              Container(
+                                width: MediaQuery.of(context).size.width / 2,
+                                padding: const EdgeInsets.only(
+                                  top: 10,
+                                  bottom: 10,
+                                  right: 5,
+                                  left: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: _isLoading
+                                      ? Colors.grey
+                                      : const Color(0XFF8a4af3),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Center(
+                                  child: _isLoading
+                                      ? SpinKitCircle(
+                                          size: 30, color: Colors.white)
+                                      : const Text(
+                                          "Add To Cart",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontFamily: 'Poppins',
+                                            fontSize: 20,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                            ],
+                          )))
+                ]))));
   }
 }
 

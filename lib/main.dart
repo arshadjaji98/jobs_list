@@ -1,6 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:groceryease_delivery_application/firebase_options.dart';
+import 'package:groceryease_delivery_application/pages/admin/admin_home_screen.dart';
+import 'package:groceryease_delivery_application/pages/admin/admin_login.dart';
+import 'package:groceryease_delivery_application/pages/registration/onboard.dart';
+import 'package:groceryease_delivery_application/pages/super_admin/super_admin_home_screen.dart';
 import 'package:groceryease_delivery_application/pages/user/bottom_nav_bar.dart';
 import 'package:groceryease_delivery_application/services/auth_gate.dart';
 
@@ -33,6 +37,6 @@ class MyApp extends StatelessWidget {
           scaffoldBackgroundColor: Colors.white,
           cardTheme: const CardTheme(color: Colors.white),
         ),
-        home: const BottomNav());
+        home: const AuthGate());
   }
 }

@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:groceryease_delivery_application/pages/admin/admin_login.dart';
 import 'package:groceryease_delivery_application/pages/registration/login.dart';
 import 'package:groceryease_delivery_application/widgets/order_user_list_widget.dart';
 import 'package:intl/intl.dart';
@@ -35,7 +36,7 @@ class _HomeAdminState extends State<HomeAdmin> {
     await FirebaseAuth.instance.signOut();
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const LogIn()),
+      MaterialPageRoute(builder: (context) => const AdminLogIn()),
     );
   }
 
@@ -46,7 +47,7 @@ class _HomeAdminState extends State<HomeAdmin> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: const Text("Home Admin"),
+        title: Text("All Orders", style: AppWidgets.boldTextFieldStyle()),
       ),
       drawer: SafeArea(
         child: StreamBuilder(
@@ -111,19 +112,6 @@ class _HomeAdminState extends State<HomeAdmin> {
                             context,
                             MaterialPageRoute(
                                 builder: (context) => const AddFood()));
-                      },
-                    ),
-                    ListTile(
-                      leading: const Icon(CupertinoIcons.chat_bubble,
-                          color: Color(0XFF8a4af3)),
-                      title: const Text('Chat Screen',
-                          style: TextStyle(color: Color(0XFF8a4af3))),
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    const NotificationsScreens()));
                       },
                     ),
                     ListTile(
