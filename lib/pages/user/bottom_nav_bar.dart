@@ -4,8 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:groceryease_delivery_application/pages/user/order_screen.dart';
 import 'package:groceryease_delivery_application/pages/user/profile.dart';
 import 'package:groceryease_delivery_application/pages/user/favorite.dart';
-
-import '../home.dart';
+import 'home.dart';
 import 'order.dart';
 
 class BottomNav extends StatefulWidget {
@@ -17,44 +16,22 @@ class BottomNav extends StatefulWidget {
 
 class _BottomNavState extends State<BottomNav> {
   int currentTab = 0;
-
-  // This function creates a new instance for each screen when called.
   Widget getPage(int index) {
     switch (index) {
       case 0:
-        return Home(
-          image: '',
-          name: '',
-          details: '',
-          price: '',
-          id: '',
-          adminId: '',
-          stock: '',
-          type: '',
+        return const Home(
           favourite: [],
-          count: 1,
         );
       case 1:
-        return Cart();
+        return const Cart();
       case 2:
-        return OrderScreen();
+        return const OrderScreen();
       case 3:
-        return Favorite();
+        return const Favorite();
       case 4:
-        return Profile();
+        return const Profile();
       default:
-        return Home(
-          image: '',
-          name: '',
-          details: '',
-          price: '',
-          id: '',
-          adminId: '',
-          stock: '',
-          type: '',
-          favourite: [],
-          count: 1,
-        );
+        return const Home();
     }
   }
 
@@ -64,19 +41,19 @@ class _BottomNavState extends State<BottomNav> {
       bottomNavigationBar: CurvedNavigationBar(
         height: 65,
         backgroundColor: Colors.white,
-        color: Color(0XFF8a4af3),
-        animationDuration: Duration(milliseconds: 300),
+        color: const Color(0XFF8a4af3),
+        animationDuration: const Duration(milliseconds: 300),
         onTap: (int index) {
           setState(() {
             currentTab = index;
           });
         },
-        items: [
+        items: const [
           Icon(CupertinoIcons.home, color: Colors.white),
           Icon(CupertinoIcons.bag, color: Colors.white),
           Icon(CupertinoIcons.cube_box, color: Colors.white),
           Icon(CupertinoIcons.heart, color: Colors.white),
-          Icon(CupertinoIcons.person, color: Colors.white)
+          Icon(Icons.local_offer, color: Colors.white)
         ],
       ),
       body: getPage(currentTab),

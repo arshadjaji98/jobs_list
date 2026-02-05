@@ -2,12 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:groceryease_delivery_application/pages/user/home.dart';
 import 'package:groceryease_delivery_application/pages/registration/login.dart';
 import 'package:groceryease_delivery_application/responsive/web_responsive.dart';
 import 'package:groceryease_delivery_application/widgets/utills.dart';
 import 'package:groceryease_delivery_application/widgets/widget_support.dart';
-
-import '../user/bottom_nav_bar.dart';
 
 class SignUp extends StatefulWidget {
   final void Function()? onTap;
@@ -24,8 +23,7 @@ class _SignUpState extends State<SignUp> {
   TextEditingController phoneController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController emailController = TextEditingController();
-  TextEditingController addressController = TextEditingController();
-  String selectType = "user"; // Default to "user"
+  String selectType = "user";
 
   final _formkey = GlobalKey<FormState>();
 
@@ -45,7 +43,6 @@ class _SignUpState extends State<SignUp> {
           "email": value.user!.email.toString(),
           "wallet": "0",
           "phone": phoneController.text,
-          "address": addressController.text,
           "id": value.user!.uid,
           "favourite": [],
           "profile_image": "",
@@ -59,7 +56,7 @@ class _SignUpState extends State<SignUp> {
             .set(addUserInfo);
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const BottomNav()),
+          MaterialPageRoute(builder: (context) => const Home()),
         );
         Utils.toastMessage("Registered Successfully");
       }).onError((e, s) {
@@ -138,7 +135,7 @@ class _SignUpState extends State<SignUp> {
                                       children: [
                                         const SizedBox(height: 20.0),
                                         Text(
-                                          "Sign up",
+                                          "Sign Up",
                                           style:
                                               AppWidgets.headerTextFieldStyle(),
                                         ),
@@ -159,41 +156,6 @@ class _SignUpState extends State<SignUp> {
                                             prefixIcon: const Icon(
                                                 Icons.person_outlined),
                                           ),
-                                        ),
-                                        const SizedBox(height: 30.0),
-                                        TextFormField(
-                                          controller: addressController,
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.isEmpty) {
-                                              return 'Please Enter Address';
-                                            }
-                                            return null;
-                                          },
-                                          decoration: InputDecoration(
-                                              hintText: 'Address',
-                                              hintStyle: AppWidgets
-                                                  .semiBoldTextFieldStyle(),
-                                              prefixIcon:
-                                                  Icon(Icons.location_on)),
-                                        ),
-                                        const SizedBox(height: 30.0),
-                                        TextFormField(
-                                          keyboardType: TextInputType.number,
-                                          controller: phoneController,
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.isEmpty) {
-                                              return 'Please Enter Phone Number';
-                                            }
-                                            return null;
-                                          },
-                                          decoration: InputDecoration(
-                                              hintText: 'Phone',
-                                              hintStyle: AppWidgets
-                                                  .semiBoldTextFieldStyle(),
-                                              prefixIcon: const Icon(Icons
-                                                  .phone_android_outlined)),
                                         ),
                                         const SizedBox(height: 30.0),
                                         TextFormField(
@@ -231,7 +193,7 @@ class _SignUpState extends State<SignUp> {
                                                   Icons.password_outlined)),
                                         ),
                                         const SizedBox(height: 20.0),
-                                        GestureDetector(
+                                        InkWell(
                                           onTap: () async {
                                             if (_formkey.currentState!
                                                 .validate()) {
@@ -282,11 +244,9 @@ class _SignUpState extends State<SignUp> {
                                             const Text(
                                               "Already have an account? ",
                                               style: TextStyle(
-                                                  fontFamily: 'Poppins',
-                                                  fontSize: 14,
-                                                  decoration:
-                                                      TextDecoration.underline,
-                                                  fontWeight: FontWeight.bold),
+                                                fontFamily: 'Poppins',
+                                                fontSize: 14,
+                                              ),
                                             ),
                                             TextButton(
                                                 onPressed: () {

@@ -10,13 +10,12 @@ class Utils {
 
   static toastMessage(String message) {
     Fluttertoast.showToast(
-      msg: message,
-      toastLength: Toast.LENGTH_SHORT,
-      gravity: ToastGravity.BOTTOM,
-      timeInSecForIosWeb: 3,
-      backgroundColor: Colors.blue,
-      textColor: Colors.white,
-      fontSize: 14.0,
-    );
+        msg: message,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 3,
+        backgroundColor: Colors.blue,
+        textColor: Colors.white,
+        fontSize: 14.0);
   }
 }

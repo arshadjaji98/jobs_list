@@ -14,9 +14,16 @@ class Cart extends StatefulWidget {
 
 class _CartState extends State<Cart> {
   final _formKey = GlobalKey<FormState>();
-
   TextEditingController phoneNumber = TextEditingController();
   TextEditingController address = TextEditingController();
+
+  // Helper method to check if ordering is allowed
+  bool isOrderingAllowed() {
+    final now = DateTime.now();
+    final currentHour = now.hour;
+    // Allow orders between 8 AM (hour 8) and 11 PM (hour 23)
+    return currentHour >= 8 && currentHour < 23;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,11 +59,14 @@ class _CartState extends State<Cart> {
                             itemCount: snapshot.data!.docs.length,
                             itemBuilder: (context, index) {
                               var item = snapshot.data!.docs[index];
+                              double price = double.parse(item["price"].toString());
+                              int count = int.parse(item["count"].toString());
+                              double totalPrice = price * count;
+
                               return Container(
                                 height: 100,
                                 width: double.infinity,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 15),
+                                padding: const EdgeInsets.symmetric(horizontal: 15),
                                 margin: const EdgeInsets.symmetric(vertical: 5),
                                 decoration: BoxDecoration(
                                   color: Colors.white,
@@ -70,32 +80,36 @@ class _CartState extends State<Cart> {
                                   ],
                                 ),
                                 child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text(item["name"],
-                                            style: const TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w600)),
-                                        Text("Rs. ${item["price"]}"),
+                                        Text(
+                                          item["name"],
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        Text(
+                                          "Rs. ${totalPrice.toStringAsFixed(2)}",
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                     Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         IconButton(
                                           onPressed: () {
                                             FirebaseFirestore.instance
                                                 .collection("users")
-                                                .doc(FirebaseAuth
-                                                    .instance.currentUser!.uid)
+                                                .doc(FirebaseAuth.instance.currentUser!.uid)
                                                 .collection("card")
                                                 .doc(item.id)
                                                 .delete();
@@ -110,13 +124,11 @@ class _CartState extends State<Cart> {
                                           children: [
                                             IconButton(
                                               onPressed: () {
-                                                int count = int.parse(
-                                                    item["count"].toString());
+                                                int count = int.parse(item["count"].toString());
                                                 if (count > 1) {
                                                   FirebaseFirestore.instance
                                                       .collection("users")
-                                                      .doc(FirebaseAuth.instance
-                                                          .currentUser!.uid)
+                                                      .doc(FirebaseAuth.instance.currentUser!.uid)
                                                       .collection("card")
                                                       .doc(item.id)
                                                       .update({
@@ -124,31 +136,28 @@ class _CartState extends State<Cart> {
                                                   });
                                                 }
                                               },
-                                              icon: const Icon(
-                                                  Icons.remove_circle_outline),
+                                              icon: const Icon(Icons.remove_circle_outline),
                                             ),
                                             Text(
                                               item["count"].toString(),
                                               style: const TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight: FontWeight.w500),
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w500,
+                                              ),
                                             ),
                                             IconButton(
                                               onPressed: () {
-                                                int count = int.parse(
-                                                    item["count"].toString());
+                                                int count = int.parse(item["count"].toString());
                                                 FirebaseFirestore.instance
                                                     .collection("users")
-                                                    .doc(FirebaseAuth.instance
-                                                        .currentUser!.uid)
+                                                    .doc(FirebaseAuth.instance.currentUser!.uid)
                                                     .collection("card")
                                                     .doc(item.id)
                                                     .update({
                                                   "count": count + 1,
                                                 });
                                               },
-                                              icon: const Icon(
-                                                  Icons.add_circle_outline),
+                                              icon: const Icon(Icons.add_circle_outline),
                                             ),
                                           ],
                                         ),
@@ -193,10 +202,15 @@ class _CartState extends State<Cart> {
                   foregroundColor: Colors.white,
                 ),
                 onPressed: () {
+                  // Check if ordering is allowed first
+                  if (!isOrderingAllowed()) {
+                    Utils.toastMessage("Orders can only be placed between 8 AM and 11 PM");
+                    return;
+                  }
+                  
                   showModalBottomSheet(
                     context: context,
-                    isScrollControlled:
-                        true, // Makes the sheet scrollable and responsive
+                    isScrollControlled: true,
                     builder: (context) {
                       return StatefulBuilder(
                         builder: (context, setModalState) {
@@ -206,14 +220,13 @@ class _CartState extends State<Cart> {
                               right: 15,
                               top: 15,
                               bottom: MediaQuery.of(context).viewInsets.bottom,
-                            ), // Adjusts padding based on keyboard height
+                            ),
                             child: SingleChildScrollView(
                               child: Form(
                                 key: _formKey,
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
                                   children: [
                                     const SizedBox(height: 25),
                                     TextFormField(
@@ -255,97 +268,72 @@ class _CartState extends State<Cart> {
                                           backgroundColor: Colors.deepPurple,
                                         ),
                                         onPressed: () async {
-                                          // Check if the form is valid
-                                          if (!_formKey.currentState!
-                                              .validate()) {
-                                            Utils.toastMessage(
-                                                "Please fill all the required fields!");
-                                            return; // Exit if validation fails
+                                          if (!isOrderingAllowed()) {
+                                            Utils.toastMessage("Orders can only be placed between 8 AM to 11 PM");
+                                            return;
                                           }
 
-                                          // Check if the cart is empty
-                                          var userDoc = FirebaseFirestore
-                                              .instance
-                                              .collection("users")
-                                              .doc(FirebaseAuth
-                                                  .instance.currentUser!.uid);
+                                          if (!_formKey.currentState!.validate()) {
+                                            Utils.toastMessage("Please fill all the required fields!");
+                                            return;
+                                          }
 
-                                          var cartSnapshot = await userDoc
-                                              .collection("card")
-                                              .get();
+                                          var userDoc = FirebaseFirestore.instance
+                                              .collection("users")
+                                              .doc(FirebaseAuth.instance.currentUser!.uid);
+
+                                          var cartSnapshot = await userDoc.collection("card").get();
 
                                           if (cartSnapshot.docs.isEmpty) {
-                                            // Show a message if the cart is empty
-                                            Utils.toastMessage(
-                                                "No items in the cart!");
-                                            return; // Exit the function
+                                            Utils.toastMessage("No items in the cart!");
+                                            return;
                                           }
 
-                                          // Proceed with the order placement logic
-                                          var orderData = await userDoc.get();
-
-                                          List<Map<String, dynamic>> items =
-                                              cartSnapshot.docs
-                                                  .map((doc) => {
-                                                        "id": doc["id"],
-                                                        "adminId":
-                                                            doc["adminId"],
-                                                        "name": doc["name"],
-                                                        "price": doc["price"],
-                                                        "count": doc["count"],
-                                                        "details":
-                                                            doc["details"],
-                                                        "image": doc["image"],
-                                                        "type": doc["type"],
-                                                        "orderType": "pending",
-                                                      })
-                                                  .toList();
+                                          // Proceed with order placement
+                                          List<Map<String, dynamic>> items = cartSnapshot.docs
+                                              .map((doc) => {
+                                                    "id": doc["id"],
+                                                    "adminId": doc["adminId"],
+                                                    "name": doc["name"],
+                                                    "price": doc["price"],
+                                                    "count": doc["count"],
+                                                    "details": doc["details"],
+                                                    "image": doc["image"],
+                                                    "type": doc["type"],
+                                                    "orderType": "pending",
+                                                  })
+                                              .toList();
 
                                           final adminIds = items
                                               .map((item) => item['adminId'])
                                               .toSet();
 
-                                          var orderId = userDoc
-                                              .collection("orders")
-                                              .doc();
+                                          var orderId = userDoc.collection("orders").doc();
 
-                                          await userDoc
-                                              .collection("orders")
-                                              .doc(orderId.id)
-                                              .set({
+                                          await userDoc.collection("orders").doc(orderId.id).set({
                                             "orderId": orderId.id,
                                             "items": items,
-                                            "totalAmount":
-                                                items.fold(0, (sum, item) {
+                                            "totalAmount": items.fold(0, (sum, item) {
                                               return sum +
-                                                  (double.parse(item["price"]
-                                                              .toString()) *
-                                                          int.parse(
-                                                              item["count"]
-                                                                  .toString()))
+                                                  (double.parse(item["price"].toString()) *
+                                                          int.parse(item["count"].toString()))
                                                       .toInt();
                                             }),
                                             "paymentMethod": "Cash",
                                             "currentAddress": address.text,
                                             "phoneNumber": phoneNumber.text,
-                                            "timestamp":
-                                                FieldValue.serverTimestamp(),
+                                            "timestamp": FieldValue.serverTimestamp(),
                                           });
 
                                           for (var adminId in adminIds) {
                                             final itemsForAdmin = items
-                                                .where((item) =>
-                                                    item['adminId'] == adminId)
+                                                .where((item) => item['adminId'] == adminId)
                                                 .toList();
 
-                                            final totalAmount = itemsForAdmin
-                                                .fold(0, (sum, item) {
+                                            final totalAmount = itemsForAdmin.fold(0, (sum, item) {
                                               return sum +
-                                                  (double.parse(item["price"]
-                                                              .toString()) *
-                                                          int.parse(
-                                                              item["count"]
-                                                                  .toString()))
+                                                  (double.parse(item["price"].toString()) *
+                                                          int.parse(item["count"].toString()))
                                                       .toInt();
                                             });
 
@@ -360,18 +348,14 @@ class _CartState extends State<Cart> {
                                               "paymentMethod": "Cash",
                                               "currentAddress": address.text,
                                               "phoneNumber": phoneNumber.text,
-                                              "timestamp":
-                                                  FieldValue.serverTimestamp(),
-                                              "userId": FirebaseAuth
-                                                  .instance.currentUser!.uid,
+                                              "timestamp": FieldValue.serverTimestamp(),
+                                              "userId": FirebaseAuth.instance.currentUser!.uid,
                                             });
                                           }
 
                                           // Clear the cart
-                                          final collectionRef =
-                                              userDoc.collection("card");
-                                          final querySnapshot =
-                                              await collectionRef.get();
+                                          final collectionRef = userDoc.collection("card");
+                                          final querySnapshot = await collectionRef.get();
 
                                           for (var doc in querySnapshot.docs) {
                                             await doc.reference.delete();

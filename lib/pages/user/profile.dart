@@ -20,7 +20,6 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   final ImagePicker _picker = ImagePicker();
   File? selectedImage;
-  final TextEditingController addressController = TextEditingController();
 
   Future getImage() async {
     var image = await _picker.pickImage(source: ImageSource.gallery);
@@ -36,7 +35,7 @@ class _ProfileState extends State<Profile> {
     if (selectedImage != null) {
       String addId = randomAlphaNumeric(10);
       Reference firebaseStorageRef =
-          FirebaseStorage.instance.ref().child("blogImages").child(addId);
+          FirebaseStorage.instance.ref().child("profileImages").child(addId);
       final UploadTask task = firebaseStorageRef.putFile(selectedImage!);
 
       var downloadUrl = await (await task).ref.getDownloadURL();
@@ -53,389 +52,111 @@ class _ProfileState extends State<Profile> {
   }
 
   @override
-  void initState() {
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0XFFF5F5F5),
+      appBar: AppBar(
+        leading: IconButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            icon: const Icon(Icons.arrow_back, color: Colors.white)),
+        backgroundColor: const Color(0XFF8a4af3),
+        title: const Text(
+          "Profile",
+          style: TextStyle(color: Colors.white),
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.white),
+            onPressed: () async {
+              bool? confirmLogout = await showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text("Confirm Logout"),
+                  content: const Text("Do you really want to log out?"),
+                  actions: [
+                    TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text("No")),
+                    TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text("Yes")),
+                  ],
+                ),
+              );
+              if (confirmLogout == true) {
+                await DatabaseServices().signOut();
+                Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => const LogIn()),
+                    (route) => false);
+              }
+            },
+          )
+        ],
+      ),
       body: StreamBuilder(
         stream: FirebaseFirestore.instance
             .collection("users")
             .doc(widget.userId ?? FirebaseAuth.instance.currentUser?.uid)
             .snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
+          if (snapshot.hasData && snapshot.data!.data() != null) {
             Map<String, dynamic> data =
                 snapshot.data!.data() as Map<String, dynamic>;
-            return Container(
-              margin: const EdgeInsets.only(bottom: 10),
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Stack(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.only(
-                              top: 45.0, left: 20.0, right: 20.0),
-                          height: MediaQuery.of(context).size.height / 4.3,
-                          width: MediaQuery.of(context).size.width,
-                          decoration: BoxDecoration(
-                              color: const Color(0XFF8a4af3),
-                              borderRadius: BorderRadius.vertical(
-                                  bottom: Radius.elliptical(
-                                      MediaQuery.of(context).size.width,
-                                      105.0))),
-                        ),
-                        Center(
-                          child: Container(
-                            margin: EdgeInsets.only(
-                                top: MediaQuery.of(context).size.height / 6.5),
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                // Main Profile Picture Container
-                                Material(
-                                  elevation: 10.0,
-                                  borderRadius: BorderRadius.circular(60),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(60),
-                                    child: selectedImage == null
-                                        ? (data["profile_image"] == null ||
-                                                data["profile_image"].isEmpty)
-                                            ? Image.asset(
-                                                "assets/images/boy.png",
-                                                height: 120,
-                                                width: 120,
-                                                fit: BoxFit.cover,
-                                              )
-                                            : Image.network(
-                                                data["profile_image"],
-                                                height: 120,
-                                                width: 120,
-                                                fit: BoxFit.cover,
-                                                errorBuilder: (context, error,
-                                                    stackTrace) {
-                                                  return Image.asset(
-                                                    "assets/images/boy.png",
-                                                    height: 120,
-                                                    width: 120,
-                                                    fit: BoxFit.cover,
-                                                  );
-                                                },
-                                              )
-                                        : Image.file(
-                                            selectedImage!,
-                                            height: 120,
-                                            width: 120,
-                                            fit: BoxFit.cover,
-                                          ),
-                                  ),
-                                ),
-
-                                // Upload Button
-                                Positioned(
-                                  bottom: 0,
-                                  right: 0,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      getImage(); // Call your function to upload an image
-                                    },
-                                    child: Container(
-                                      height: 40,
-                                      width: 40,
-                                      decoration: BoxDecoration(
-                                        color: Colors
-                                            .blue, // Adjust the color to your theme
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: Colors
-                                              .white, // Add border for better visibility
-                                          width: 2,
-                                        ),
-                                      ),
-                                      child: Icon(
-                                        Icons
-                                            .camera_alt, // Camera icon for upload
-                                        color: Colors.white,
-                                        size: 20,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(
-                              top: 40.0, right: 15, left: 15),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Container(
-                                height: 35,
-                                width: 35,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(5),
-                                  border: Border.all(color: Colors.white),
-                                ),
-                                child: GestureDetector(
-                                  onTap: () async {
-                                    // Show the dialog box for logout confirmation
-                                    bool? confirmLogout = await showDialog(
-                                      context: context,
-                                      builder: (BuildContext context) {
-                                        return AlertDialog(
-                                          title: const Text("Confirm Logout"),
-                                          content: const Text(
-                                              "Do you really want to log out?"),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () {
-                                                Navigator.of(context).pop(
-                                                    false); // Cancel logout
-                                              },
-                                              child: const Text("No"),
-                                            ),
-                                            TextButton(
-                                              onPressed: () {
-                                                Navigator.of(context).pop(
-                                                    true); // Confirm logout
-                                              },
-                                              child: const Text("Yes"),
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    );
-
-                                    if (confirmLogout == true) {
-                                      await DatabaseServices().signOut();
-                                      Navigator.of(context).pushAndRemoveUntil(
-                                        MaterialPageRoute(
-                                          builder: (context) => const LogIn(),
-                                        ),
-                                        (Route<dynamic> route) => false,
-                                      );
-                                    }
-                                  },
-                                  child: Center(
-                                    child: Icon(
-                                      Icons.logout,
-                                      color: Colors.white,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(
-                      height: 20.0,
-                    ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Material(
-                        borderRadius: BorderRadius.circular(10),
-                        elevation: 2.0,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 15.0,
-                            horizontal: 10.0,
-                          ),
-                          decoration: BoxDecoration(
-                              color: const Color(0XFF8a4af3),
-                              borderRadius: BorderRadius.circular(10)),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.person,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(
-                                width: 20.0,
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    "Name",
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16.0,
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                  Text(
-                                    data["name"],
-                                    style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16.0,
-                                        fontWeight: FontWeight.w600),
-                                  )
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 30.0),
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Material(
-                        borderRadius: BorderRadius.circular(10),
-                        elevation: 2.0,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 15.0,
-                            horizontal: 10.0,
-                          ),
-                          decoration: BoxDecoration(
-                              color: const Color(0XFF8a4af3),
-                              borderRadius: BorderRadius.circular(10)),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.email,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(
-                                width: 20.0,
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    "Email",
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16.0,
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                  Text(
-                                    data["email"],
-                                    style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16.0,
-                                        fontWeight: FontWeight.w600),
-                                  )
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 30.0,
-                    ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Material(
-                        borderRadius: BorderRadius.circular(10),
-                        elevation: 2.0,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 15.0,
-                            horizontal: 10.0,
-                          ),
-                          decoration: BoxDecoration(
-                              color: const Color(0XFF8a4af3),
-                              borderRadius: BorderRadius.circular(10)),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.phone,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(
-                                width: 20.0,
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    "Phone",
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16.0,
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                  Text(
-                                    data["phone"].toString(),
-                                    style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16.0,
-                                        fontWeight: FontWeight.w600),
-                                  )
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(
-                      height: 30.0,
-                    ),
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Material(
-                        borderRadius: BorderRadius.circular(10),
-                        elevation: 2.0,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 15.0,
-                            horizontal: 10.0,
-                          ),
-                          decoration: BoxDecoration(
-                              color: const Color(0XFF8a4af3),
-                              borderRadius: BorderRadius.circular(10)),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.phone,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(
-                                width: 20.0,
-                              ),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    "Address",
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 16.0,
-                                        fontWeight: FontWeight.w600),
-                                  ),
-                                  Text(
-                                    data["address"],
-                                    style: const TextStyle(
-                                        fontSize: 16, color: Colors.white),
-                                  ),
-                                ],
-                              )
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 30.0),
-                  ],
-                ),
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 40),
+                  _buildInfoCard(Icons.person, "Your Name", data["name"]),
+                  _buildInfoCard(Icons.email, "Your Email", data["email"]),
+                  const SizedBox(height: 30),
+                ],
               ),
             );
           } else {
             return const Center(child: CircularProgressIndicator());
           }
         },
+      ),
+    );
+  }
+
+  Widget _buildInfoCard(IconData icon, String label, String? value) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))
+        ],
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(child: Icon(icon, color: Colors.white)),
+          const SizedBox(width: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label,
+                  style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w500)),
+              const SizedBox(height: 4),
+              Text(
+                value ?? "Not set",
+                style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87),
+              ),
+            ],
+          )
+        ],
       ),
     );
   }

@@ -4,8 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
+import 'package:groceryease_delivery_application/pages/user/home.dart';
 import 'package:groceryease_delivery_application/pages/super_admin/super_admin_home_screen.dart';
-import 'package:groceryease_delivery_application/pages/user/bottom_nav_bar.dart';
 import 'package:groceryease_delivery_application/pages/registration/forgot_password.dart';
 import 'package:groceryease_delivery_application/pages/registration/signup.dart';
 import 'package:groceryease_delivery_application/responsive/web_responsive.dart';
@@ -30,6 +30,7 @@ class _LogInState extends State<LogIn> {
   final _formkey = GlobalKey<FormState>();
   TextEditingController userEmailController = TextEditingController();
   TextEditingController userPasswordController = TextEditingController();
+  bool _isObscure = true;
 
   userLogin() async {
     if (_formkey.currentState!.validate()) {
@@ -39,30 +40,22 @@ class _LogInState extends State<LogIn> {
 
       try {
         setState(() {
-          _isLoading = true; // Start loading
+          _isLoading = true;
         });
-
-        // Attempt login
         final value = await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: email,
           password: password,
         );
-
-        // Fetch user document
         final doc = await FirebaseFirestore.instance
             .collection("users")
             .doc(value.user!.uid)
             .get();
-
         if (doc.exists && doc.data() != null) {
-          // Get user role
           final userRole = doc.data()?['user_role'] as String?;
-
-          // Navigate based on role
           if (userRole == "user") {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const BottomNav()),
+              MaterialPageRoute(builder: (context) => const Home()),
             );
           } else if (userRole == "admin") {
             Navigator.pushReplacement(
@@ -85,16 +78,12 @@ class _LogInState extends State<LogIn> {
             MaterialPageRoute(builder: (context) => const LogIn()),
           );
         }
-
         Utils.toastMessage("Login successful! Redirecting...");
       } on FirebaseAuthException catch (e) {
-        // Firebase-specific error handling
         Utils.toastMessage(e.message ?? "Authentication error occurred.");
       } catch (e) {
-        // General error handling
         Utils.toastMessage("An unexpected error occurred: ${e.toString()}");
       } finally {
-        // Stop loading
         setState(() {
           _isLoading = false;
         });
@@ -108,10 +97,9 @@ class _LogInState extends State<LogIn> {
       body: Stack(
         children: [
           Container(
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height / 2.5,
-            decoration: const BoxDecoration(color: Color(0XFF8a4af3)),
-          ),
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height / 2.5,
+              decoration: const BoxDecoration(color: Color(0XFF8a4af3))),
           Container(
             margin:
                 EdgeInsets.only(top: MediaQuery.of(context).size.height / 3),
@@ -129,7 +117,7 @@ class _LogInState extends State<LogIn> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  SizedBox(height: 50),
+                  const SizedBox(height: 50),
                   Padding(
                     padding: const EdgeInsets.all(20),
                     child: WebResponsive(
@@ -172,8 +160,19 @@ class _LogInState extends State<LogIn> {
                                   validator: (value) => value!.isEmpty
                                       ? 'Please Enter Password'
                                       : null,
-                                  obscureText: true,
+                                  obscureText: _isObscure,
                                   decoration: InputDecoration(
+                                    suffixIcon: IconButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            _isObscure = !_isObscure;
+                                          });
+                                        },
+                                        icon: Icon(
+                                          _isObscure
+                                              ? Icons.visibility
+                                              : Icons.visibility_off,
+                                        )),
                                     hintText: 'Password',
                                     hintStyle:
                                         AppWidgets.semiBoldTextFieldStyle(),
@@ -182,7 +181,7 @@ class _LogInState extends State<LogIn> {
                                   ),
                                 ),
                                 const SizedBox(height: 20.0),
-                                GestureDetector(
+                                InkWell(
                                   onTap: () {
                                     Navigator.push(
                                       context,
@@ -196,16 +195,15 @@ class _LogInState extends State<LogIn> {
                                     child: const Text(
                                       "Forgot Password?",
                                       style: TextStyle(
-                                        fontFamily: 'Poppins',
-                                        fontSize: 16,
-                                        decoration: TextDecoration.underline,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                          fontFamily: 'Poppins',
+                                          fontSize: 14,
+                                          decoration: TextDecoration.underline,
+                                          fontWeight: FontWeight.w500),
                                     ),
                                   ),
                                 ),
                                 const SizedBox(height: 40.0),
-                                GestureDetector(
+                                InkWell(
                                   onTap: () {
                                     if (_formkey.currentState!.validate()) {
                                       setState(() {
@@ -227,7 +225,7 @@ class _LogInState extends State<LogIn> {
                                         borderRadius: BorderRadius.circular(20),
                                       ),
                                       child: _isLoading
-                                          ? Center(
+                                          ? const Center(
                                               child: SpinKitWave(
                                                   size: 20,
                                                   color: Colors.white))

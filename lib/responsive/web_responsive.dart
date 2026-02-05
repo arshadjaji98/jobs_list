@@ -8,7 +8,7 @@ class WebResponsive extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 600), child: child),
+          constraints: const BoxConstraints(maxWidth: 600), child: child),
     );
   }
 }

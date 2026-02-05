@@ -1,12 +1,10 @@
-// ignore_for_file: use_build_context_synchronously
+// ignore_for_file: use_build_context_synchronously, prefer_interpolation_to_compose_strings
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:groceryease_delivery_application/pages/admin/admin_login.dart';
-import 'package:groceryease_delivery_application/pages/registration/login.dart';
 import 'package:groceryease_delivery_application/widgets/order_user_list_widget.dart';
 import 'package:intl/intl.dart';
 
@@ -14,7 +12,6 @@ import '../../services/image_picker.dart';
 import '../../widgets/widget_support.dart';
 import 'add_food.dart';
 import 'my_product.dart';
-import 'notification_screen.dart';
 
 class HomeAdmin extends StatefulWidget {
   const HomeAdmin({super.key});
@@ -137,7 +134,7 @@ class _HomeAdminState extends State<HomeAdmin> {
                 ),
               );
             } else {
-              return Center(child: SizedBox());
+              return const Center(child: SizedBox());
             }
           },
         ),
@@ -195,7 +192,7 @@ class _HomeAdminState extends State<HomeAdmin> {
                                 title: Text(
                                     snapshot.data!.docs[index]["items"][i]
                                         ["name"],
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 16,
                                         color: Colors.black)),
@@ -204,7 +201,7 @@ class _HomeAdminState extends State<HomeAdmin> {
                                     Text("Rs. " +
                                         snapshot.data!.docs[index]["items"][i]
                                             ["price"]),
-                                    SizedBox(
+                                    const SizedBox(
                                       width: 10,
                                     ),
                                     Text("Qty. " +
@@ -367,7 +364,7 @@ class _HomeAdminState extends State<HomeAdmin> {
               },
             );
           } else {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
         },
       ),

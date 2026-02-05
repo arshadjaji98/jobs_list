@@ -12,6 +12,28 @@ class OrderScreen extends StatefulWidget {
 }
 
 class _OrderScreenState extends State<OrderScreen> {
+  Future<void> cancelOrder(String orderId) async {
+    try {
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+
+      // Delete the order from Firestore
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(userId)
+          .collection("orders")
+          .doc(orderId)
+          .delete();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Order canceled successfully")),
+      );
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to cancel order: $error")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -37,10 +59,12 @@ class _OrderScreenState extends State<OrderScreen> {
           return ListView.builder(
             itemCount: snapshot.data!.docs.length,
             itemBuilder: (context, index) {
+              final orderData = snapshot.data!.docs[index];
+              final orderId = orderData.id; // Get the order ID
               DateTime dateTime =
-                  (snapshot.data!.docs[index]["timestamp"] as Timestamp)
-                      .toDate();
+                  (orderData["timestamp"] as Timestamp).toDate();
               var orderDate = DateFormat('dd-MM-yyyy').format(dateTime);
+
               return Card(
                 child: ExpansionTile(
                   title: Text(orderDate,
@@ -48,50 +72,57 @@ class _OrderScreenState extends State<OrderScreen> {
                           fontWeight: FontWeight.normal,
                           fontSize: 12,
                           color: Colors.grey)),
-                  subtitle: Text(snapshot.data!.docs[index]["paymentMethod"],
+                  subtitle: Text(orderData["paymentMethod"],
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                           color: Colors.black)),
-                  trailing: Text(
-                      "Rs. " +
-                          snapshot.data!.docs[index]["totalAmount"].toString(),
+                  trailing: Text("Rs. " + orderData["totalAmount"].toString(),
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                           color: Colors.black)),
                   children: [
                     SizedBox(
-                      height: 200,
+                      height: 100,
                       child: ListView.builder(
-                        itemCount: snapshot.data!.docs[index]["items"].length,
+                        itemCount: orderData["items"].length,
                         itemBuilder: (context, i) {
                           return ListTile(
                             leading: Text("${i + 1}"),
                             title: Text(
-                              snapshot.data!.docs[index]["items"][i]["name"],
+                              orderData["items"][i]["name"],
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
                                   color: Colors.black),
                             ),
-                            subtitle: Text(snapshot.data!.docs[index]["items"]
-                                [i]["orderType"]),
+                            subtitle: Text(orderData["items"][i]["orderType"]),
                             trailing: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Text("Rs. " +
-                                    snapshot.data!.docs[index]["items"][i]
-                                        ["price"]),
+                                Text("Rs. " + orderData["items"][i]["price"]),
                                 Text("Qty. " +
-                                    snapshot
-                                        .data!.docs[index]["items"][i]["count"]
-                                        .toString()),
+                                    orderData["items"][i]["count"].toString()),
                               ],
                             ),
                           );
                         },
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: TextButton(
+                        onPressed: () {
+                          cancelOrder(
+                              orderId); // Call the cancel order function
+                        },
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.red,
+                          backgroundColor: Colors.grey[200],
+                        ),
+                        child: Text("Cancel Order"),
                       ),
                     ),
                   ],

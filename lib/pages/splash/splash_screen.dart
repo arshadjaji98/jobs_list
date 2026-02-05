@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:groceryease_delivery_application/services/splash_service.dart';
-import 'package:groceryease_delivery_application/widgets/widget_support.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -19,10 +18,9 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    // Initialize the AnimationController
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2), // Animation duration
+      duration: const Duration(seconds: 10), 
     );
 
     // Define a scaling animation
@@ -33,7 +31,6 @@ class _SplashScreenState extends State<SplashScreen>
     // Start the animation
     _controller.forward();
 
-    // Start the splash service
     splashService.isSplash(context);
   }
 
@@ -44,31 +41,36 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFFfdfdfd),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          // Static Splash Image
-          Image.asset('assets/images/splash.jpg'),
-          Center(
-            child: ScaleTransition(
-              scale: _animation,
-              child: Image.asset('assets/images/logo.png',
-                  height: 250, width: 250),
-            ),
-          ),
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: const Color(0xFFfdfdfd),
+    body: Stack(
+      fit: StackFit.expand,
+      children: [        
+        Image.asset(
+          'assets/images/splash.jpg',
+          fit: BoxFit.cover,
+        ),
 
-          // Tagline
-          Text(
-            "Fresh. Fast. Delivered.",
-            style: AppWidgets.boldTextFieldStyle(),
+        Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ScaleTransition(
+                scale: _animation,
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  height: 500,
+                  width: 500,         
+                ),
+              ),
+              const SizedBox(height: 20),
+              const CircularProgressIndicator(color: Colors.white),
+            ],
           ),
-
-          const CircularProgressIndicator(color: Colors.green),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
 }
+    }
