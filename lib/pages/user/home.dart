@@ -10,6 +10,7 @@ import 'package:groceryease_delivery_application/pages/user/announcements.dart';
 import 'package:groceryease_delivery_application/widgets/widget_support.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:intl/intl.dart';
 
 class Home extends StatefulWidget {
   final List? favourite;
@@ -42,6 +43,21 @@ class _HomeState extends State<Home> {
     fetchUsername();
   }
 
+  String formatPostedDate(dynamic ts) {
+    if (ts == null) return 'Unknown';
+    try {
+      if (ts is Timestamp)
+        return DateFormat('dd MMMM yyyy').format(ts.toDate());
+      if (ts is DateTime) return DateFormat('dd MMMM yyyy').format(ts);
+      if (ts is int)
+        return DateFormat('dd MMMM yyyy')
+            .format(DateTime.fromMillisecondsSinceEpoch(ts));
+      return ts.toString();
+    } catch (e) {
+      return 'Unknown';
+    }
+  }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -66,28 +82,29 @@ class _HomeState extends State<Home> {
   }
 
   Stream<QuerySnapshot> getFilteredProducts() {
-    final collection =
-        FirebaseFirestore.instance.collection("products").limit(20);
-    Query query = collection.limit(20);
+    Query collection = FirebaseFirestore.instance.collection("products");
 
+    // Filter by search
     if (_searchQuery.isNotEmpty) {
-      return collection
+      collection = collection
           .where('name', isGreaterThanOrEqualTo: _searchQuery)
-          .where('name', isLessThan: _searchQuery + 'z')
-          .snapshots();
-    }
-    if (selectType != null) {
-      query = query.where("type", isEqualTo: selectType);
+          .where('name', isLessThan: _searchQuery + 'z');
     }
 
+    // Filter by type
     if (selectType != null) {
-      return collection.where("type", isEqualTo: selectType).snapshots();
+      collection = collection.where("type", isEqualTo: selectType);
     }
+
+    // Sort by Latest or Oldest
     if (_sortOrder == 'Latest') {
-      query = query.orderBy('timestamp', descending: true);
+      collection = collection.orderBy('timestamp', descending: true);
     } else {
-      query = query.orderBy('timestamp', descending: false);
+      collection = collection.orderBy('timestamp', descending: false);
     }
+
+    // Limit results
+    collection = collection.limit(20);
 
     return collection.snapshots();
   }
@@ -276,46 +293,40 @@ class _HomeState extends State<Home> {
           )
         ],
       ),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            SingleChildScrollView(
-              child: Column(
-                children: [
-                  Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: TextField(
-                        onTapOutside: (_) {
-                          FocusScope.of(context).unfocus();
-                        },
-                        controller: _searchController,
-                        decoration: const InputDecoration(
-                          contentPadding:
-                              EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                          prefixIcon: Icon(Icons.search),
-                          hintText: 'Search for a job',
-                          border: InputBorder.none,
-                        ),
-                        onChanged: (value) =>
-                            setState(() => _searchQuery = value.trim()),
-                      ),
-                    ),
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Container(
+                padding: const EdgeInsets.only(top: 8),
+                child: TextField(
+                  onTapOutside: (_) {
+                    FocusScope.of(context).unfocus();
+                  },
+                  controller: _searchController,
+                  decoration: const InputDecoration(
+                    contentPadding:
+                        EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                    prefixIcon: Icon(Icons.search),
+                    hintText: 'Search for a job',
+                    border: InputBorder.none,
                   ),
-                ],
+                  onChanged: (value) =>
+                      setState(() => _searchQuery = value.trim()),
+                ),
               ),
             ),
             Align(
               alignment: Alignment.centerLeft,
               child: Container(
-                margin: EdgeInsets.only(top: 10, left: 5),
+                margin: const EdgeInsets.only(top: 10, left: 5),
                 width: 120,
                 height: 30,
-                padding: EdgeInsets.all(4),
+                padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
@@ -363,156 +374,202 @@ class _HomeState extends State<Home> {
               ),
             ),
             const SizedBox(height: 10),
-            StreamBuilder(
-              stream: getFilteredProducts(),
-              builder: (context, AsyncSnapshot snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child:
-                        SpinKitWaveSpinner(color: Color(0XFF8a4af3), size: 40),
-                  );
-                }
-                if (!snapshot.hasData || snapshot.data.docs.isEmpty) {
-                  return Center(
-                    child: Text(
-                      _searchQuery.isEmpty
-                          ? "No current job available"
-                          : "No job found for '$_searchQuery'",
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: 16),
-                    ),
-                  );
-                }
-                return ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: snapshot.data.docs.length,
-                  itemBuilder: (context, index) {
-                    DocumentSnapshot ds = snapshot.data.docs[index];
+            Expanded(
+              child: StreamBuilder(
+                stream: getFilteredProducts(),
+                builder: (context, AsyncSnapshot snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: SpinKitWaveSpinner(
+                          color: Color(0XFF8a4af3), size: 40),
+                    );
+                  }
+                  if (!snapshot.hasData || snapshot.data.docs.isEmpty) {
                     return Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 600),
-                        child: GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              PageTransition(
-                                type: PageTransitionType.sharedAxisVertical,
-                                alignment: Alignment.center,
-                                duration: const Duration(milliseconds: 400),
-                                child: Details(
-                                  image: ds['image'],
-                                  name: ds['name'],
-                                  details: ds['detail'],
-                                  price: ds['price'].toString(),
-                                  id: ds['id'],
-                                  stock: ds['quantity'].toString(),
-                                  adminId: ds['adminId'],
-                                  type: ds['type'],
-                                  location: ds['location'],
-                                  vacancies: ds['vacancies'],
-                                  favourite: const [],
-                                ),
-                              ),
-                            );
-                          },
-                          child: Card(
-                            margin: const EdgeInsets.only(bottom: 16),
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16)),
-                            elevation: 4,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                ClipRRect(
-                                  borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(16)),
-                                  child: CachedNetworkImage(
-                                    imageUrl: ds["image"],
-                                    height: 180,
-                                    width: double.infinity,
-                                    fit: BoxFit.cover,
-                                    placeholder: (context, url) => Container(
-                                        color: Colors.grey[200], height: 180),
-                                    errorWidget: (context, url, error) =>
-                                        const Icon(Icons.error, size: 50),
+                      child: Text(
+                        _searchQuery.isEmpty
+                            ? "No current job available"
+                            : "No job found for '$_searchQuery'",
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                    );
+                  }
+                  return ListView.builder(
+                    physics: const BouncingScrollPhysics(),
+                    itemCount: snapshot.data.docs.length,
+                    itemBuilder: (context, index) {
+                      DocumentSnapshot ds = snapshot.data.docs[index];
+                      return Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 600),
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                PageTransition(
+                                  type: PageTransitionType.sharedAxisVertical,
+                                  alignment: Alignment.center,
+                                  duration: const Duration(milliseconds: 400),
+                                  child: Details(
+                                    image: ds['image'],
+                                    name: ds['name'],
+                                    details: ds['detail'],
+                                    price: ds['price'].toString(),
+                                    id: ds['id'],
+                                    stock: ds['quantity'].toString(),
+                                    adminId: ds['adminId'],
+                                    type: ds['type'],
+                                    location: ds['location'],
+                                    postedDate: ds['timestamp'],
+                                    vacancies: ds['vacancies'],
+                                    favourite: const [],
                                   ),
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        ds["name"],
-                                        style: AppWidgets.boldTextFieldStyle(),
-                                      ),
-                                      const SizedBox(height: 15),
-                                      Row(
+                              );
+                            },
+                            child: Card(
+                              margin: const EdgeInsets.only(bottom: 16),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16)),
+                              elevation: 4,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: const BorderRadius.vertical(
+                                        top: Radius.circular(16)),
+                                    child: SizedBox(
+                                      height: 180,
+                                      width: double.infinity,
+                                      child: Stack(
+                                        fit: StackFit.expand,
                                         children: [
-                                          const Icon(Icons.calendar_today,
-                                              size: 18, color: Colors.black54),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            "Last Date: ${ds["price"]}",
-                                            style: const TextStyle(
-                                              color: Colors.black54,
-                                              fontWeight: FontWeight.w500,
+                                          CachedNetworkImage(
+                                            imageUrl: ds["image"],
+                                            fit: BoxFit.cover,
+                                            placeholder: (context, url) =>
+                                                Container(
+                                                    color: Colors.grey[200],
+                                                    height: 180),
+                                            errorWidget:
+                                                (context, url, error) =>
+                                                    const Icon(Icons.error,
+                                                        size: 50),
+                                          ),
+                                          Positioned(
+                                            top: 8,
+                                            left: 8,
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 8,
+                                                      vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: Colors.black54,
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Text(
+                                                formatPostedDate(
+                                                    ds['timestamp']),
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
                                             ),
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(height: 6),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              const Icon(Icons.location_on,
-                                                  size: 18,
-                                                  color: Colors.black54),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                "Location: ${ds["location"]}",
-                                                style: const TextStyle(
-                                                  fontSize: 13,
-                                                  color: Color(0XFF5d2ee6),
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          Row(
-                                            children: [
-                                              const Icon(Icons.people,
-                                                  size: 18,
-                                                  color: Colors.black54),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                "Vacancies: ${ds["vacancies"]}",
-                                                style: const TextStyle(
-                                                  fontSize: 13,
-                                                  color: Color(0XFF5d2ee6),
-                                                  fontWeight: FontWeight.w500,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ],
+                                    ),
                                   ),
-                                )
-                              ],
+                                  Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(ds["name"],
+                                            style: AppWidgets
+                                                .boldTextFieldStyle()),
+                                        const SizedBox(height: 15),
+                                        Row(
+                                          children: [
+                                            const Icon(Icons.calendar_today,
+                                                size: 18,
+                                                color: Colors.black54),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              "Last Date: ${ds["price"]}",
+                                              style: const TextStyle(
+                                                  color: Colors.black54,
+                                                  fontWeight: FontWeight.w500),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.location_on,
+                                                    size: 18,
+                                                    color: Colors.black54),
+                                                const SizedBox(width: 4),
+                                                ConstrainedBox(
+                                                  constraints:
+                                                      const BoxConstraints(
+                                                          maxWidth: 220),
+                                                  child: Text(
+                                                    "Location: ${ds["location"]}",
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: const TextStyle(
+                                                        fontSize: 13,
+                                                        color:
+                                                            Color(0XFF5d2ee6),
+                                                        fontWeight:
+                                                            FontWeight.w500),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            Row(
+                                              children: [
+                                                const Icon(Icons.people,
+                                                    size: 18,
+                                                    color: Colors.black54),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  "Vacancies: ${ds["vacancies"]}",
+                                                  style: const TextStyle(
+                                                      fontSize: 13,
+                                                      color: Color(0XFF5d2ee6),
+                                                      fontWeight:
+                                                          FontWeight.w500),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                      ],
+                                    ),
+                                  )
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                );
-              },
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ],
         ),

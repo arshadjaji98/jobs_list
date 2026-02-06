@@ -125,6 +125,7 @@ class _FavoriteState extends State<Favorite> {
                                   location: ds['location'],
                                   vacancies: ds['vacancies'],
                                   favourite: [],
+                                  postedDate: ds['timestamp'],
                                 ),
                               ),
                             );

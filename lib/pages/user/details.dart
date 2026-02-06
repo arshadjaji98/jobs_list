@@ -14,6 +14,7 @@ class Details extends StatefulWidget {
   final String image, name, details, price, id, adminId, stock, type;
   final String location, vacancies;
   final List favourite;
+  final Timestamp? postedDate;
 
   const Details({
     super.key,
@@ -28,6 +29,7 @@ class Details extends StatefulWidget {
     required this.location,
     required this.vacancies,
     required this.favourite,
+    required this.postedDate,
   });
 
   @override
@@ -40,12 +42,22 @@ class _DetailsState extends State<Details> {
   @override
   void initState() {
     super.initState();
-    final currentUser = FirebaseAuth.instance.currentUser!.uid;
-    isSaved = widget.favourite.contains(currentUser);
+    final current = FirebaseAuth.instance.currentUser;
+    if (current != null) {
+      final currentUser = current.uid;
+      isSaved = widget.favourite.contains(currentUser);
+    } else {
+      isSaved = false;
+    }
   }
 
   Future<void> toggleSaveJob() async {
-    final userId = FirebaseAuth.instance.currentUser!.uid;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      Utils.toastMessage("Please sign in to save jobs");
+      return;
+    }
+    final userId = user.uid;
     final userRef = FirebaseFirestore.instance.collection("users").doc(userId);
     final productRef =
         FirebaseFirestore.instance.collection("products").doc(widget.id);
@@ -92,6 +104,16 @@ class _DetailsState extends State<Details> {
       return DateFormat("dd MMMM yyyy").format(parsedDate);
     } catch (e) {
       return rawDate; // fallback if parsing fails
+    }
+  }
+
+  String formatPostedDate(Timestamp? ts) {
+    if (ts == null) return 'Unknown';
+    try {
+      final dt = ts.toDate();
+      return DateFormat('dd MMMM yyyy').format(dt);
+    } catch (e) {
+      return 'Unknown';
     }
   }
 
@@ -230,6 +252,22 @@ class _DetailsState extends State<Details> {
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: Color(0XFF8a4af3),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("Posted Date:",
+                          style: AppWidgets.semiBoldTextFieldStyle()),
+                      Text(
+                        formatPostedDate(widget.postedDate),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0XFF181725),
                         ),
                       ),
                     ],
