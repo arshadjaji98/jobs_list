@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:groceryease_delivery_application/pages/registration/login.dart';
 import 'package:groceryease_delivery_application/services/database_services.dart';
+import 'package:groceryease_delivery_application/widgets/utills.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:random_string/random_string.dart';
 
@@ -68,58 +69,76 @@ class _ProfileState extends State<Profile> {
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: () async {
-              bool? confirmLogout = await showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text("Confirm Logout"),
-                  content: const Text("Do you really want to log out?"),
-                  actions: [
-                    TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text("No")),
-                    TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        child: const Text("Yes")),
-                  ],
-                ),
-              );
-              if (confirmLogout == true) {
-                await DatabaseServices().signOut();
-                Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const LogIn()),
-                    (route) => false);
-              }
-            },
-          )
+          // Only show logout if user is logged in
+          if (widget.userId != null ||
+              FirebaseAuth.instance.currentUser != null)
+            IconButton(
+              icon: const Icon(Icons.logout, color: Colors.white),
+              onPressed: () async {
+                bool? confirmLogout = await showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text("Confirm Logout"),
+                    content: const Text("Do you really want to log out?"),
+                    actions: [
+                      TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text("No")),
+                      TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: const Text("Yes")),
+                    ],
+                  ),
+                );
+                if (confirmLogout == true) {
+                  await DatabaseServices().signOut();
+                  Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => const LogIn()),
+                      (route) => false);
+                }
+              },
+            )
         ],
       ),
-      body: StreamBuilder(
-        stream: FirebaseFirestore.instance
-            .collection("users")
-            .doc(widget.userId ?? FirebaseAuth.instance.currentUser?.uid)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasData && snapshot.data!.data() != null) {
-            Map<String, dynamic> data =
-                snapshot.data!.data() as Map<String, dynamic>;
-            return SingleChildScrollView(
-              child: Column(
-                children: [
-                  const SizedBox(height: 40),
-                  _buildInfoCard(Icons.person, "Your Name", data["name"]),
-                  _buildInfoCard(Icons.email, "Your Email", data["email"]),
-                  const SizedBox(height: 30),
-                ],
+      body: widget.userId == null && FirebaseAuth.instance.currentUser == null
+          ? const Center(
+              child: Text(
+                "User not logged in",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black54,
+                ),
               ),
-            );
-          } else {
-            return const Center(child: CircularProgressIndicator());
-          }
-        },
-      ),
+            )
+          : StreamBuilder(
+              stream: FirebaseFirestore.instance
+                  .collection("users")
+                  .doc(widget.userId ?? FirebaseAuth.instance.currentUser!.uid)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasData && snapshot.data!.data() != null) {
+                  Map<String, dynamic> data =
+                      snapshot.data!.data() as Map<String, dynamic>;
+                  return SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 40),
+                        if (widget.userId != null ||
+                            FirebaseAuth.instance.currentUser != null)
+                          _buildChangePasswordCard(context),
+                        _buildInfoCard(Icons.person, "Your Name", data["name"]),
+                        _buildInfoCard(
+                            Icons.email, "Your Email", data["email"]),
+                        const SizedBox(height: 30),
+                      ],
+                    ),
+                  );
+                } else {
+                  return const Center(child: CircularProgressIndicator());
+                }
+              },
+            ),
     );
   }
 
@@ -160,4 +179,83 @@ class _ProfileState extends State<Profile> {
       ),
     );
   }
+}
+
+Widget _buildChangePasswordCard(BuildContext context) {
+  return GestureDetector(
+    onTap: () async {
+      TextEditingController _passwordController = TextEditingController();
+
+      bool? changed = await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text("Change Password"),
+          content: TextField(
+            controller: _passwordController,
+            obscureText: true,
+            decoration: const InputDecoration(
+              hintText: "Enter new password",
+            ),
+          ),
+          actions: [
+            TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text("Cancel")),
+            TextButton(
+                onPressed: () async {
+                  String newPassword = _passwordController.text.trim();
+                  if (newPassword.length < 6) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Password must be at least 6 characters"),
+                      ),
+                    );
+                    return;
+                  }
+                  try {
+                    User? user = FirebaseAuth.instance.currentUser;
+                    if (user != null) {
+                      await user.updatePassword(newPassword);
+                      Navigator.pop(context, true);
+                    }
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text("Error: $e")),
+                    );
+                  }
+                },
+                child: const Text("Change")),
+          ],
+        ),
+      );
+
+      if (changed == true) {
+        Utils.toastMessage("Password changed successfully");
+      }
+    },
+    child: Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))
+        ],
+      ),
+      child: Row(
+        children: const [
+          CircleAvatar(child: Icon(Icons.lock, color: Colors.white)),
+          SizedBox(width: 16),
+          Text(
+            "Change Password",
+            style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87),
+          ),
+        ],
+      ),
+    ),
+  );
 }

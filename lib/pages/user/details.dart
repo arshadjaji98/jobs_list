@@ -38,55 +38,6 @@ class Details extends StatefulWidget {
 
 class _DetailsState extends State<Details> {
   int count = 1;
-  bool isSaved = false;
-  @override
-  void initState() {
-    super.initState();
-    final current = FirebaseAuth.instance.currentUser;
-    if (current != null) {
-      final currentUser = current.uid;
-      isSaved = widget.favourite.contains(currentUser);
-    } else {
-      isSaved = false;
-    }
-  }
-
-  Future<void> toggleSaveJob() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      Utils.toastMessage("Please sign in to save jobs");
-      return;
-    }
-    final userId = user.uid;
-    final userRef = FirebaseFirestore.instance.collection("users").doc(userId);
-    final productRef =
-        FirebaseFirestore.instance.collection("products").doc(widget.id);
-
-    if (isSaved) {
-      // Unsave job
-      await userRef.update({
-        "favourite": FieldValue.arrayRemove([widget.id]),
-      });
-      await productRef.update({
-        "favourite": FieldValue.arrayRemove([userId]),
-      });
-      Utils.toastMessage("Job removed from saved list");
-    } else {
-      // Save job
-      await userRef.update({
-        "favourite": FieldValue.arrayUnion([widget.id]),
-      });
-      await productRef.update({
-        "favourite": FieldValue.arrayUnion([userId]),
-      });
-      Utils.toastMessage("Job saved successfully");
-    }
-
-    // Update UI immediately
-    setState(() {
-      isSaved = !isSaved;
-    });
-  }
 
   String cleanPriceString(String price) {
     return price.replaceAll(RegExp(r'[^0-9]'), '');
@@ -97,13 +48,12 @@ class _DetailsState extends State<Details> {
     return (int.parse(cleanedPrice) * count).toString();
   }
 
-  /// Format raw date like "23092025" → "23 September 2025"
   String formatDate(String rawDate) {
     try {
       DateTime parsedDate = DateFormat("ddMMyyyy").parse(rawDate);
       return DateFormat("dd MMMM yyyy").format(parsedDate);
     } catch (e) {
-      return rawDate; // fallback if parsing fails
+      return rawDate;
     }
   }
 
@@ -126,9 +76,33 @@ class _DetailsState extends State<Details> {
     }
   }
 
+  Future<void> toggleSaveJob(bool isSaved) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      Utils.toastMessage("Please sign in to save jobs");
+      return;
+    }
+    final userId = user.uid;
+    final userRef = FirebaseFirestore.instance.collection("users").doc(userId);
+    final productRef =
+        FirebaseFirestore.instance.collection("products").doc(widget.id);
+
+    if (isSaved) return; // already saved, do nothing
+
+    await userRef.update({
+      "favourite": FieldValue.arrayUnion([widget.id]),
+    });
+    await productRef.update({
+      "favourite": FieldValue.arrayUnion([userId]),
+    });
+
+    Utils.toastMessage("Job saved successfully");
+  }
+
   @override
   Widget build(BuildContext context) {
-    debugPrint("Image: ${widget.image}");
+    final currentUser = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       backgroundColor: const Color(0XFFF5F5F5),
       body: SingleChildScrollView(
@@ -215,7 +189,7 @@ class _DetailsState extends State<Details> {
                       Text("Last Date:",
                           style: AppWidgets.semiBoldTextFieldStyle()),
                       Text(
-                        formatDate(widget.price), // formatted date
+                        formatDate(widget.price),
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -293,37 +267,55 @@ class _DetailsState extends State<Details> {
           ],
         ),
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    isSaved ? Colors.grey : const Color(0XFF8a4af3),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              onPressed: toggleSaveJob,
-              icon: Icon(
-                isSaved ? Icons.bookmark_added : Icons.bookmark_border,
-                color: Colors.white,
-              ),
-              label: Text(
-                isSaved ? "Job Saved" : "Save Job",
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
+      bottomNavigationBar: currentUser == null
+          ? const SizedBox.shrink()
+          : StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(currentUser.uid)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return const SizedBox(
+                      height: 50,
+                      child: Center(child: CircularProgressIndicator()));
+                }
+                final userData = snapshot.data!.data() as Map<String, dynamic>;
+                final favourites =
+                    List<String>.from(userData['favourite'] ?? []);
+                final isSaved = favourites.contains(widget.id);
+
+                return Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            isSaved ? Colors.grey : const Color(0XFF8a4af3),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      onPressed: isSaved ? null : () => toggleSaveJob(isSaved),
+                      icon: Icon(
+                        isSaved ? Icons.bookmark_added : Icons.bookmark_border,
+                        color: Colors.white,
+                      ),
+                      label: Text(
+                        isSaved ? "Job Saved" : "Save Job",
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
-          ),
-        ),
-      ),
     );
   }
 }
