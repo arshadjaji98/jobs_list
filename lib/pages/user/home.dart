@@ -46,12 +46,14 @@ class _HomeState extends State<Home> {
   String formatPostedDate(dynamic ts) {
     if (ts == null) return 'Unknown';
     try {
-      if (ts is Timestamp)
+      if (ts is Timestamp) {
         return DateFormat('dd MMMM yyyy').format(ts.toDate());
+      }
       if (ts is DateTime) return DateFormat('dd MMMM yyyy').format(ts);
-      if (ts is int)
+      if (ts is int) {
         return DateFormat('dd MMMM yyyy')
             .format(DateTime.fromMillisecondsSinceEpoch(ts));
+      }
       return ts.toString();
     } catch (e) {
       return 'Unknown';
