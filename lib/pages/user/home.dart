@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
-import 'package:groceryease_delivery_application/pages/registration/login.dart';
+import 'package:groceryease_delivery_application/pages/registration/signup.dart';
 import 'package:groceryease_delivery_application/pages/user/details.dart';
 import 'package:groceryease_delivery_application/pages/user/favorite.dart';
 import 'package:groceryease_delivery_application/pages/user/profile.dart';
@@ -86,27 +86,12 @@ class _HomeState extends State<Home> {
   Stream<QuerySnapshot> getFilteredProducts() {
     Query collection = FirebaseFirestore.instance.collection("products");
 
-    // Filter by search
-    if (_searchQuery.isNotEmpty) {
-      collection = collection
-          .where('name', isGreaterThanOrEqualTo: _searchQuery)
-          .where('name', isLessThan: _searchQuery + 'z');
-    }
-
-    // Filter by type
     if (selectType != null) {
       collection = collection.where("type", isEqualTo: selectType);
     }
 
-    // Sort by Latest or Oldest
-    if (_sortOrder == 'Latest') {
-      collection = collection.orderBy('timestamp', descending: true);
-    } else {
-      collection = collection.orderBy('timestamp', descending: false);
-    }
-
-    // Limit results
-    collection = collection.limit(20);
+    collection =
+        collection.orderBy('timestamp', descending: _sortOrder == 'Latest');
 
     return collection.snapshots();
   }
@@ -256,12 +241,12 @@ class _HomeState extends State<Home> {
                   ),
                   ListTile(
                     leading: const Icon(Icons.login, color: Colors.black54),
-                    title: const Text("Sign In"),
+                    title: const Text("Create/Login"),
                     onTap: () {
                       Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => const LogIn()));
+                              builder: (context) => const SignUp()));
                     },
                   ),
                 ],
