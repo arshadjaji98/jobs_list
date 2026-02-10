@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:groceryease_delivery_application/pages/user/details.dart';
-import 'package:groceryease_delivery_application/widgets/widget_support.dart';
 import 'package:page_transition/page_transition.dart';
 
 class Favorite extends StatefulWidget {
