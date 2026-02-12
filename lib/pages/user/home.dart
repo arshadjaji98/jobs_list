@@ -106,176 +106,189 @@ class _HomeState extends State<Home> {
           print('Missing composite index. Please check Firebase Console.');
         }
       }
-      return Stream.empty();
+      return const Stream.empty();
     });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F7F9),
+      backgroundColor: Colors.white,
       drawer: SafeArea(
-        child: Drawer(
-          backgroundColor: Colors.white,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              DrawerHeader(
-                child: Center(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: Colors.black,
-                          ),
-                        ),
-                        child: CircleAvatar(
-                            radius: 30,
-                            backgroundColor: Colors.white,
-                            child: Image.asset('assets/images/Logo.jpg')),
+          child: Drawer(
+        backgroundColor: const Color(0XFF8a4af3),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            DrawerHeader(
+              child: Center(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white),
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        FirebaseAuth.instance.currentUser != null
-                            ? 'Hello, ${username ?? 'User'}'
-                            : 'Welcome, Guest',
-                        style: const TextStyle(
-                          color: Color(0XFF8a4af3),
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      child: CircleAvatar(
+                        radius: 30,
+                        backgroundColor: Colors.white,
+                        child: Image.asset('assets/images/Logo.jpg'),
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      FirebaseAuth.instance.currentUser != null
+                          ? 'Hello, ${username ?? 'User'}'
+                          : 'Welcome, Guest',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              ListTile(
-                leading: Icon(
-                  Icons.work_outline,
-                  color: selectType == null
-                      ? const Color(0XFF8a4af3)
-                      : Colors.black54,
-                ),
-                title: Text(
-                  "All Jobs",
-                  style: TextStyle(
-                    fontWeight: selectType == null
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    color: selectType == null
-                        ? const Color(0XFF8a4af3)
-                        : Colors.black87,
-                  ),
-                ),
-                selected: selectType == null,
-                selectedTileColor: const Color(0XFFECECF8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                onTap: () {
-                  setState(() {
-                    selectType = null;
-                    _searchQuery = '';
-                    _searchController.clear();
-                  });
-                  Navigator.pop(context);
-                },
+            ),
+
+            /// ALL JOBS
+            ListTile(
+              leading: Icon(
+                Icons.work_outline,
+                color: selectType == null ? Colors.white : Colors.white70,
               ),
-              // Announcements link
-              ListTile(
-                leading: const Icon(Icons.announcement, color: Colors.black54),
-                title: const Text('Announcements'),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const Announcements()),
+              title: Text(
+                "All Jobs",
+                style: TextStyle(
+                  fontWeight:
+                      selectType == null ? FontWeight.bold : FontWeight.normal,
+                  color: selectType == null ? Colors.white : Colors.white70,
+                ),
+              ),
+              selected: selectType == null,
+              selectedTileColor: const Color(0XFFa970f5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              onTap: () {
+                setState(() {
+                  selectType = null;
+                  _searchQuery = '';
+                  _searchController.clear();
+                });
+                Navigator.pop(context);
+              },
+            ),
+
+            /// ANNOUNCEMENTS
+            ListTile(
+              leading: const Icon(Icons.announcement, color: Colors.white70),
+              title: const Text(
+                'Announcements',
+                style: TextStyle(color: Colors.white70),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const Announcements(),
+                  ),
+                );
+              },
+            ),
+
+            const Divider(color: Colors.white38),
+
+            /// CATEGORIES
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: categories.map((cat) {
+                  bool isSelected = selectType == cat["name"];
+
+                  return ListTile(
+                    leading: Icon(
+                      cat["icon"],
+                      color: isSelected ? Colors.white : Colors.white70,
+                    ),
+                    title: Text(
+                      cat["name"],
+                      style: TextStyle(
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: isSelected ? Colors.white : Colors.white70,
+                      ),
+                    ),
+                    selected: isSelected,
+                    selectedTileColor: const Color(0XFFa970f5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    onTap: () {
+                      setState(() {
+                        selectType = cat["name"];
+                        _searchQuery = '';
+                        _searchController.clear();
+                      });
+                      Navigator.pop(context);
+                    },
                   );
-                },
+                }).toList(),
               ),
-              const Divider(),
-              Expanded(
-                child: ListView(
-                  padding: EdgeInsets.zero,
-                  children: categories.map((cat) {
-                    return ListTile(
-                      leading: Icon(
-                        cat["icon"],
-                        color: selectType == cat["name"]
-                            ? const Color(0XFF8a4af3)
-                            : Colors.black54,
+            ),
+
+            const Divider(thickness: 1, height: 0, color: Colors.white38),
+
+            /// BOTTOM SECTION
+            Column(
+              children: [
+                ListTile(
+                  leading:
+                      const Icon(Icons.person_outline, color: Colors.white70),
+                  title: const Text(
+                    "Profile",
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const Profile(),
                       ),
-                      title: Text(
-                        cat["name"],
-                        style: TextStyle(
-                          fontWeight: selectType == cat["name"]
-                              ? FontWeight.bold
-                              : FontWeight.normal,
-                          color: selectType == cat["name"]
-                              ? const Color(0XFF8a4af3)
-                              : Colors.black87,
-                        ),
-                      ),
-                      selected: selectType == cat["name"],
-                      selectedTileColor: const Color(0XFFECECF8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      onTap: () {
-                        setState(() {
-                          selectType = cat["name"];
-                          _searchQuery = '';
-                          _searchController.clear();
-                        });
-                        Navigator.pop(context);
-                      },
                     );
-                  }).toList(),
+                  },
                 ),
-              ),
-              const Divider(thickness: 1, height: 0),
-              Column(
-                children: [
-                  ListTile(
-                    leading:
-                        const Icon(Icons.person_outline, color: Colors.black54),
-                    title: const Text("Profile"),
-                    onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const Profile()));
-                    },
+                ListTile(
+                  leading: const Icon(Icons.login, color: Colors.white70),
+                  title: const Text(
+                    "Create/Login",
+                    style: TextStyle(color: Colors.white70),
                   ),
-                  ListTile(
-                    leading: const Icon(Icons.login, color: Colors.black54),
-                    title: const Text("Create/Login"),
-                    onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) => const SignUp()));
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SignUp(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+          ],
         ),
-      ),
+      )),
       appBar: AppBar(
         centerTitle: true,
-        title: const Text("Available Jobs",
-            style: TextStyle(color: Color(0XFF5d2ee6))),
-        backgroundColor: Colors.white,
+        title:
+            const Text("Available Jobs", style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0XFF8a4af3),
         elevation: 0,
-        iconTheme: const IconThemeData(color: Color(0XFF5d2ee6)),
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           InkWell(
             onTap: () => Navigator.push(
@@ -380,9 +393,38 @@ class _HomeState extends State<Home> {
                 stream: getFilteredProducts(),
                 builder: (context, AsyncSnapshot snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: SpinKitWaveSpinner(
-                          color: Color(0XFF8a4af3), size: 40),
+                    return ListView.builder(
+                      itemCount: 5,
+                      itemBuilder: (context, index) {
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16)),
+                          child: Container(
+                            height: 250,
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  height: 150,
+                                  color: Colors.grey[300],
+                                ),
+                                const SizedBox(height: 12),
+                                Container(
+                                    height: 16,
+                                    width: 200,
+                                    color: Colors.grey[300]),
+                                const SizedBox(height: 8),
+                                Container(
+                                    height: 14,
+                                    width: 120,
+                                    color: Colors.grey[300]),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
                     );
                   }
                   if (snapshot.hasError) {
@@ -424,179 +466,206 @@ class _HomeState extends State<Home> {
                       ),
                     );
                   }
-                  return ListView.builder(
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: snapshot.data.docs.length,
-                    itemBuilder: (context, index) {
-                      DocumentSnapshot ds = snapshot.data.docs[index];
-                      return Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 600),
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                PageTransition(
-                                  type: PageTransitionType.sharedAxisVertical,
-                                  alignment: Alignment.center,
-                                  duration: const Duration(milliseconds: 400),
-                                  child: Details(
-                                    image: ds['image'],
-                                    name: ds['name'],
-                                    details: ds['detail'],
-                                    price: ds['price'].toString(),
-                                    id: ds['id'],
-                                    stock: ds['quantity'].toString(),
-                                    adminId: ds['adminId'],
-                                    type: ds['type'],
-                                    location: ds['location'],
-                                    postedDate: ds['timestamp'],
-                                    vacancies: ds['vacancies'],
-                                    favourite: const [],
-                                  ),
-                                ),
-                              );
-                            },
-                            child: Card(
-                              margin: const EdgeInsets.only(bottom: 16),
-                              shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16)),
-                              elevation: 4,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: const BorderRadius.vertical(
-                                        top: Radius.circular(16)),
-                                    child: SizedBox(
-                                      height: 180,
-                                      width: double.infinity,
-                                      child: Stack(
-                                        fit: StackFit.expand,
-                                        children: [
-                                          CachedNetworkImage(
-                                            imageUrl: ds["image"],
-                                            fit: BoxFit.cover,
-                                            placeholder: (context, url) =>
-                                                Container(
-                                                    color: Colors.grey[200],
-                                                    height: 180),
-                                            errorWidget:
-                                                (context, url, error) =>
-                                                    const Icon(Icons.error,
-                                                        size: 50),
-                                          ),
-                                          Positioned(
-                                            top: 8,
-                                            left: 8,
-                                            child: Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      horizontal: 8,
-                                                      vertical: 4),
-                                              decoration: BoxDecoration(
-                                                color: Colors.black54,
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                              ),
-                                              child: Text(
-                                                formatPostedDate(
-                                                    ds['timestamp']),
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ],
+                  return RefreshIndicator(
+                      child: ListView.builder(
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: snapshot.data.docs.length,
+                        itemBuilder: (context, index) {
+                          DocumentSnapshot ds = snapshot.data.docs[index];
+                          bool isNew = false;
+                          if (ds['timestamp'] != null &&
+                              ds['timestamp'] is Timestamp) {
+                            final postedDate =
+                                (ds['timestamp'] as Timestamp).toDate();
+                            isNew =
+                                DateTime.now().difference(postedDate).inDays <=
+                                    3;
+                          }
+
+                          return Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 600),
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    PageTransition(
+                                      type:
+                                          PageTransitionType.sharedAxisVertical,
+                                      alignment: Alignment.center,
+                                      duration:
+                                          const Duration(milliseconds: 400),
+                                      child: Details(
+                                        image: ds['image'],
+                                        name: ds['name'],
+                                        details: ds['detail'],
+                                        price: ds['price'].toString(),
+                                        id: ds['id'],
+                                        stock: ds['quantity'].toString(),
+                                        adminId: ds['adminId'],
+                                        type: ds['type'],
+                                        location: ds['location'],
+                                        postedDate: ds['timestamp'],
+                                        vacancies: ds['vacancies'],
+                                        favourite: const [],
                                       ),
                                     ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(12),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(ds["name"],
-                                            style: AppWidgets
-                                                .boldTextFieldStyle()),
-                                        const SizedBox(height: 15),
-                                        Row(
-                                          children: [
-                                            const Icon(Icons.calendar_today,
-                                                size: 18,
-                                                color: Colors.black54),
-                                            const SizedBox(width: 6),
-                                            Text(
-                                              "Last Date: ${ds["price"]}",
-                                              style: const TextStyle(
-                                                  color: Colors.black54,
-                                                  fontWeight: FontWeight.w500),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 6),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                const Icon(Icons.location_on,
-                                                    size: 18,
-                                                    color: Colors.black54),
-                                                const SizedBox(width: 4),
-                                                ConstrainedBox(
-                                                  constraints:
-                                                      const BoxConstraints(
-                                                          maxWidth: 220),
-                                                  child: Text(
-                                                    "Location: ${ds["location"]}",
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: const TextStyle(
-                                                        fontSize: 13,
-                                                        color:
-                                                            Color(0XFF5d2ee6),
+                                  );
+                                },
+                                child: Card(
+                                  margin: const EdgeInsets.only(bottom: 16),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16)),
+                                  elevation: 4,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius:
+                                            const BorderRadius.vertical(
+                                                top: Radius.circular(16)),
+                                        child: SizedBox(
+                                          height: 180,
+                                          width: double.infinity,
+                                          child: Stack(
+                                            fit: StackFit.expand,
+                                            children: [
+                                              CachedNetworkImage(
+                                                imageUrl: ds["image"],
+                                                fit: BoxFit.cover,
+                                                placeholder: (context, url) =>
+                                                    Container(
+                                                        color: Colors.grey[200],
+                                                        height: 180),
+                                                errorWidget:
+                                                    (context, url, error) =>
+                                                        const Icon(Icons.error,
+                                                            size: 50),
+                                              ),
+                                              if (isNew)
+                                                Positioned(
+                                                  top: 8,
+                                                  right: 8,
+                                                  child: Container(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 8,
+                                                        vertical: 4),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.green,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                    ),
+                                                    child: const Text(
+                                                      "NEW",
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 12,
                                                         fontWeight:
-                                                            FontWeight.w500),
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
                                                   ),
                                                 ),
-                                              ],
-                                            ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      Padding(
+                                        padding: const EdgeInsets.all(12),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(ds["name"],
+                                                style: AppWidgets
+                                                    .boldTextFieldStyle()),
+                                            const SizedBox(height: 15),
                                             Row(
                                               children: [
-                                                const Icon(Icons.people,
+                                                const Icon(Icons.calendar_today,
                                                     size: 18,
                                                     color: Colors.black54),
-                                                const SizedBox(width: 4),
+                                                const SizedBox(width: 6),
                                                 Text(
-                                                  "Vacancies: ${ds["vacancies"]}",
+                                                  "Last Date: ${ds["price"]}",
                                                   style: const TextStyle(
-                                                      fontSize: 13,
-                                                      color: Color(0XFF5d2ee6),
+                                                      color: Colors.black54,
                                                       fontWeight:
                                                           FontWeight.w500),
                                                 ),
                                               ],
                                             ),
+                                            const SizedBox(height: 6),
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    const Icon(
+                                                        Icons.location_on,
+                                                        size: 18,
+                                                        color: Colors.black54),
+                                                    const SizedBox(width: 4),
+                                                    ConstrainedBox(
+                                                      constraints:
+                                                          const BoxConstraints(
+                                                              maxWidth: 220),
+                                                      child: Text(
+                                                        "Location: ${ds["location"]}",
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        style: const TextStyle(
+                                                            fontSize: 13,
+                                                            color: Color(
+                                                                0XFF5d2ee6),
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .w500),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Row(
+                                                  children: [
+                                                    const Icon(Icons.people,
+                                                        size: 18,
+                                                        color: Colors.black54),
+                                                    const SizedBox(width: 4),
+                                                    Text(
+                                                      "Vacancies: ${ds["vacancies"]}",
+                                                      style: const TextStyle(
+                                                          fontSize: 13,
+                                                          color:
+                                                              Color(0XFF5d2ee6),
+                                                          fontWeight:
+                                                              FontWeight.w500),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8),
                                           ],
                                         ),
-                                        const SizedBox(height: 8),
-                                      ],
-                                    ),
-                                  )
-                                ],
+                                      )
+                                    ],
+                                  ),
+                                ),
                               ),
                             ),
-                          ),
-                        ),
-                      );
-                    },
-                  );
+                          );
+                        },
+                      ),
+                      onRefresh: () async {
+                        setState(() {
+                          // Trigger a rebuild to refresh the stream}
+                        });
+                      });
                 },
               ),
             ),
