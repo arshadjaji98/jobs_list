@@ -96,7 +96,18 @@ class _HomeState extends State<Home> {
     collection =
         collection.orderBy('timestamp', descending: _sortOrder == 'Latest');
 
-    return collection.snapshots();
+    return collection.snapshots().handleError((error) {
+      if (kDebugMode) {
+        print('Firestore query error: $error');
+      }
+      // Check if it's a missing index error
+      if (error.toString().contains('index')) {
+        if (kDebugMode) {
+          print('Missing composite index. Please check Firebase Console.');
+        }
+      }
+      return Stream.empty();
+    });
   }
 
   @override
@@ -372,6 +383,34 @@ class _HomeState extends State<Home> {
                     return const Center(
                       child: SpinKitWaveSpinner(
                           color: Color(0XFF8a4af3), size: 40),
+                    );
+                  }
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.error_outline,
+                              color: Colors.red, size: 48),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Error: ${snapshot.error}',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: Colors.red,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          if (snapshot.error.toString().contains('index'))
+                            const Text(
+                              'Missing composite index.\nPlease check Firebase Console logs.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 12),
+                            ),
+                        ],
+                      ),
                     );
                   }
                   if (!snapshot.hasData || snapshot.data.docs.isEmpty) {
