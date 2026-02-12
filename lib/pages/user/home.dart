@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:groceryease_delivery_application/pages/registration/signup.dart';
 import 'package:groceryease_delivery_application/pages/user/details.dart';
 import 'package:groceryease_delivery_application/pages/user/favorite.dart';
