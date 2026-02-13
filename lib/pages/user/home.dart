@@ -92,18 +92,15 @@ class _HomeState extends State<Home> {
       collection = collection.where("type", isEqualTo: selectType);
     }
 
-    collection =
-        collection.orderBy('timestamp', descending: _sortOrder == 'Latest');
+    // Only orderBy if no filters are applied to avoid needing composite indexes
+    if (selectType == null) {
+      collection =
+          collection.orderBy('timestamp', descending: _sortOrder == 'Latest');
+    }
 
     return collection.snapshots().handleError((error) {
       if (kDebugMode) {
         print('Firestore query error: $error');
-      }
-      // Check if it's a missing index error
-      if (error.toString().contains('index')) {
-        if (kDebugMode) {
-          print('Missing composite index. Please check Firebase Console.');
-        }
       }
       return const Stream.empty();
     });
@@ -391,7 +388,39 @@ class _HomeState extends State<Home> {
               child: StreamBuilder(
                 stream: getFilteredProducts(),
                 builder: (context, AsyncSnapshot snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
+                  // Check for errors
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.error_outline,
+                              color: Colors.red, size: 48),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Error: ${snapshot.error}',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: Colors.red,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          if (snapshot.error.toString().contains('index'))
+                            const Text(
+                              'Missing composite index.\nPlease check Firebase Console logs.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 12),
+                            ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  // Show loading skeleton while waiting for initial data
+                  if (snapshot.connectionState == ConnectionState.waiting &&
+                      !snapshot.hasData) {
                     return ListView.builder(
                       itemCount: 5,
                       itemBuilder: (context, index) {
@@ -426,34 +455,8 @@ class _HomeState extends State<Home> {
                       },
                     );
                   }
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.error_outline,
-                              color: Colors.red, size: 48),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Error: ${snapshot.error}',
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: Colors.red,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          if (snapshot.error.toString().contains('index'))
-                            const Text(
-                              'Missing composite index.\nPlease check Firebase Console logs.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 12),
-                            ),
-                        ],
-                      ),
-                    );
-                  }
+
+                  // Check if data is empty
                   if (!snapshot.hasData || snapshot.data.docs.isEmpty) {
                     return Center(
                       child: Text(
@@ -465,12 +468,49 @@ class _HomeState extends State<Home> {
                       ),
                     );
                   }
+
+                  // Filter jobs based on search query
+                  final filteredDocs = snapshot.data.docs.where((doc) {
+                    if (_searchQuery.isEmpty) return true;
+                    final jobName =
+                        (doc['name'] ?? '').toString().toLowerCase();
+                    final jobDetail =
+                        (doc['detail'] ?? '').toString().toLowerCase();
+                    final searchLower = _searchQuery.toLowerCase();
+                    return jobName.contains(searchLower) ||
+                        jobDetail.contains(searchLower);
+                  }).toList();
+
+                  // Sort client-side if category is selected (to avoid needing composite index)
+                  if (selectType != null) {
+                    filteredDocs.sort((a, b) {
+                      final timeA = a['timestamp'] as Timestamp?;
+                      final timeB = b['timestamp'] as Timestamp?;
+
+                      if (timeA == null || timeB == null) return 0;
+
+                      final comparison = timeB.compareTo(timeA);
+                      return _sortOrder == 'Latest' ? comparison : -comparison;
+                    });
+                  }
+
+                  // Show message if no jobs match search
+                  if (filteredDocs.isEmpty && _searchQuery.isNotEmpty) {
+                    return Center(
+                      child: Text(
+                        "No job found for '$_searchQuery'",
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                    );
+                  }
+
                   return RefreshIndicator(
                       child: ListView.builder(
                         physics: const BouncingScrollPhysics(),
-                        itemCount: snapshot.data.docs.length,
+                        itemCount: filteredDocs.length,
                         itemBuilder: (context, index) {
-                          DocumentSnapshot ds = snapshot.data.docs[index];
+                          DocumentSnapshot ds = filteredDocs[index];
                           bool isNew = false;
                           if (ds['timestamp'] != null &&
                               ds['timestamp'] is Timestamp) {
@@ -661,9 +701,7 @@ class _HomeState extends State<Home> {
                         },
                       ),
                       onRefresh: () async {
-                        setState(() {
-                          // Trigger a rebuild to refresh the stream}
-                        });
+                        setState(() {});
                       });
                 },
               ),
