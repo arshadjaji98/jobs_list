@@ -276,6 +276,40 @@ class _LogInState extends State<LogIn> {
                                     ),
                                   ],
                                 ),
+                                const SizedBox(height: 20.0),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const Home(),
+                                      ),
+                                    );
+                                  },
+                                  child: Container(
+                                    width: 200,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 10),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: const Color(0XFF8a4af3),
+                                        width: 2,
+                                      ),
+                                    ),
+                                    child: const Center(
+                                      child: Text(
+                                        "Continue to Jobs",
+                                        style: TextStyle(
+                                          color: Color(0XFF8a4af3),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          fontFamily: 'Poppins1',
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
