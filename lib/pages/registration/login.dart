@@ -5,14 +5,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:groceryease_delivery_application/pages/user/home.dart';
-import 'package:groceryease_delivery_application/pages/super_admin/super_admin_home_screen.dart';
 import 'package:groceryease_delivery_application/pages/registration/forgot_password.dart';
 import 'package:groceryease_delivery_application/pages/registration/signup.dart';
 import 'package:groceryease_delivery_application/responsive/web_responsive.dart';
 import 'package:groceryease_delivery_application/widgets/utills.dart';
 import 'package:groceryease_delivery_application/widgets/widget_support.dart';
 
-import '../admin/admin_home_screen.dart';
+// admin pages removed
 
 class LogIn extends StatefulWidget {
   final void Function()? onTap;
@@ -51,26 +50,11 @@ class _LogInState extends State<LogIn> {
             .doc(value.user!.uid)
             .get();
         if (doc.exists && doc.data() != null) {
-          final userRole = doc.data()?['user_role'] as String?;
-          if (userRole == "user") {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const Home()),
-            );
-          } else if (userRole == "admin") {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const HomeAdmin()),
-            );
-          } else if (userRole == "superAdmin") {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const SuperAdminHomeScreen()),
-            );
-          } else {
-            Utils.toastMessage("Unknown user role.");
-          }
+          // Route all known users to the main Home screen. Admin roles removed.
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const Home()),
+          );
         } else {
           Utils.toastMessage("User record not found.");
           Navigator.pushReplacement(

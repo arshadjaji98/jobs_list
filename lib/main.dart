@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:groceryease_delivery_application/firebase_options.dart';
-import 'package:groceryease_delivery_application/pages/user/home.dart';
+import 'package:groceryease_delivery_application/services/auth_gate.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: Colors.white,
         cardTheme: const CardThemeData(color: Colors.white),
       ),
-      home: const Home(),
+      home: const AuthGate(),
     );
   }
 }
