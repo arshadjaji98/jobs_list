@@ -131,7 +131,7 @@ class _HomeState extends State<Home> {
                       child: CircleAvatar(
                         radius: 30,
                         backgroundColor: Colors.white,
-                        child: Image.asset('assets/images/Logo.jpg'),
+                        child: Image.asset('assets/images/logo.jpg'),
                       ),
                     ),
                     const SizedBox(height: 12),
