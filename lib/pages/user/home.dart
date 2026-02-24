@@ -12,6 +12,7 @@ import 'package:groceryease_delivery_application/widgets/widget_support.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:intl/intl.dart';
+import 'package:groceryease_delivery_application/services/theme_service.dart';
 
 class Home extends StatefulWidget {
   final List? favourite;
@@ -110,10 +111,10 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       drawer: SafeArea(
         child: Drawer(
-          backgroundColor: const Color(0XFF8a4af3),
+          backgroundColor: Theme.of(context).colorScheme.primary,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -127,11 +128,13 @@ class _HomeState extends State<Home> {
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white),
+                          border: Border.all(
+                              color: Theme.of(context).colorScheme.onPrimary),
                         ),
                         child: CircleAvatar(
                           radius: 30,
-                          backgroundColor: Colors.white,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.onPrimary,
                           child: Image.asset('assets/images/logo.jpg'),
                         ),
                       ),
@@ -140,8 +143,8 @@ class _HomeState extends State<Home> {
                         FirebaseAuth.instance.currentUser != null
                             ? 'Hello, ${username ?? 'User'}'
                             : 'Welcome, Guest',
-                        style: const TextStyle(
-                          color: Colors.white,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onPrimary,
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
@@ -153,7 +156,12 @@ class _HomeState extends State<Home> {
               ListTile(
                 leading: Icon(
                   Icons.work_outline,
-                  color: selectType == null ? Colors.white : Colors.white70,
+                  color: selectType == null
+                      ? Theme.of(context).colorScheme.onPrimary
+                      : Theme.of(context)
+                          .colorScheme
+                          .onPrimary
+                          .withOpacity(0.8),
                 ),
                 title: Text(
                   "All Jobs",
@@ -161,7 +169,12 @@ class _HomeState extends State<Home> {
                     fontWeight: selectType == null
                         ? FontWeight.bold
                         : FontWeight.normal,
-                    color: selectType == null ? Colors.white : Colors.white70,
+                    color: selectType == null
+                        ? Theme.of(context).colorScheme.onPrimary
+                        : Theme.of(context)
+                            .colorScheme
+                            .onPrimary
+                            .withOpacity(0.8),
                   ),
                 ),
                 selected: selectType == null,
@@ -179,10 +192,18 @@ class _HomeState extends State<Home> {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.announcement, color: Colors.white70),
-                title: const Text(
+                leading: Icon(Icons.announcement,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onPrimary
+                        .withOpacity(0.8)),
+                title: Text(
                   'Announcements',
-                  style: TextStyle(color: Colors.white70),
+                  style: TextStyle(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onPrimary
+                          .withOpacity(0.8)),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -194,7 +215,9 @@ class _HomeState extends State<Home> {
                   );
                 },
               ),
-              const Divider(color: Colors.white38),
+              Divider(
+                  color:
+                      Theme.of(context).colorScheme.onPrimary.withOpacity(0.4)),
               Expanded(
                 child: ListView(
                   padding: EdgeInsets.zero,
@@ -204,14 +227,24 @@ class _HomeState extends State<Home> {
                     return ListTile(
                       leading: Icon(
                         cat["icon"],
-                        color: isSelected ? Colors.white : Colors.white70,
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.onPrimary
+                            : Theme.of(context)
+                                .colorScheme
+                                .onPrimary
+                                .withOpacity(0.8),
                       ),
                       title: Text(
                         cat["name"],
                         style: TextStyle(
                           fontWeight:
                               isSelected ? FontWeight.bold : FontWeight.normal,
-                          color: isSelected ? Colors.white : Colors.white70,
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.onPrimary
+                              : Theme.of(context)
+                                  .colorScheme
+                                  .onPrimary
+                                  .withOpacity(0.8),
                         ),
                       ),
                       selected: isSelected,
@@ -233,15 +266,51 @@ class _HomeState extends State<Home> {
                   }).toList(),
                 ),
               ),
-              const Divider(thickness: 1, height: 0, color: Colors.white38),
+              Divider(
+                  thickness: 1,
+                  height: 0,
+                  color:
+                      Theme.of(context).colorScheme.onPrimary.withOpacity(0.4)),
               Column(
                 children: [
+                  ValueListenableBuilder<ThemeMode>(
+                    valueListenable: ThemeService.modeNotifier,
+                    builder: (context, mode, _) {
+                      return ListTile(
+                        leading: Icon(Icons.dark_mode,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onPrimary
+                                .withOpacity(0.8)),
+                        title: Text(
+                          "Dark Mode",
+                          style: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimary
+                                  .withOpacity(0.8)),
+                        ),
+                        trailing: Switch.adaptive(
+                          value: ThemeService.isDark,
+                          activeColor: Theme.of(context).colorScheme.onPrimary,
+                          onChanged: (v) => ThemeService.setDark(v),
+                        ),
+                      );
+                    },
+                  ),
                   ListTile(
-                    leading:
-                        const Icon(Icons.person_outline, color: Colors.white70),
-                    title: const Text(
+                    leading: Icon(Icons.person_outline,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onPrimary
+                            .withOpacity(0.8)),
+                    title: Text(
                       "Profile",
-                      style: TextStyle(color: Colors.white70),
+                      style: TextStyle(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onPrimary
+                              .withOpacity(0.8)),
                     ),
                     onTap: () {
                       Navigator.push(
@@ -253,10 +322,18 @@ class _HomeState extends State<Home> {
                     },
                   ),
                   ListTile(
-                    leading: const Icon(Icons.login, color: Colors.white70),
-                    title: const Text(
+                    leading: Icon(Icons.login,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onPrimary
+                            .withOpacity(0.8)),
+                    title: Text(
                       "Create/Login",
-                      style: TextStyle(color: Colors.white70),
+                      style: TextStyle(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .onPrimary
+                              .withOpacity(0.8)),
                     ),
                     onTap: () {
                       Navigator.push(
@@ -275,11 +352,12 @@ class _HomeState extends State<Home> {
       ),
       appBar: AppBar(
         centerTitle: true,
-        title:
-            const Text("Available Jobs", style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color(0XFF8a4af3),
+        title: Text("Available Jobs",
+            style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
+        backgroundColor: Theme.of(context).colorScheme.primary,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme:
+            IconThemeData(color: Theme.of(context).colorScheme.onPrimary),
         actions: [
           InkWell(
             onTap: () => Navigator.push(
@@ -332,24 +410,22 @@ class _HomeState extends State<Home> {
                 height: 30,
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: _sortOrder,
-                    hint: const Text(
+                    hint: Text(
                       "Sort by",
-                      style: TextStyle(fontSize: 14, color: Colors.black54),
+                      style: TextStyle(
+                          fontSize: 14,
+                          color: Theme.of(context).textTheme.bodySmall?.color),
                     ),
-                    icon: const Icon(Icons.arrow_drop_down,
-                        color: Color(0xFF8a4af3)),
-                    dropdownColor: Colors.white,
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    icon: Icon(Icons.arrow_drop_down,
+                        color: Theme.of(context).colorScheme.primary),
+                    dropdownColor: Theme.of(context).colorScheme.surface,
+                    style: Theme.of(context).textTheme.bodyLarge,
                     items: ['Latest', 'Oldest']
                         .map((order) => DropdownMenuItem(
                               value: order,
@@ -603,20 +679,26 @@ class _HomeState extends State<Home> {
                                           children: [
                                             Text(ds["name"],
                                                 style: AppWidgets
-                                                    .boldTextFieldStyle()),
+                                                    .boldTextFieldStyle(
+                                                        context)),
                                             const SizedBox(height: 15),
                                             Row(
                                               children: [
-                                                const Icon(Icons.calendar_today,
+                                                Icon(Icons.calendar_today,
                                                     size: 18,
-                                                    color: Colors.black54),
+                                                    color: Theme.of(context)
+                                                        .textTheme
+                                                        .bodySmall
+                                                        ?.color),
                                                 const SizedBox(width: 6),
                                                 Text(
                                                   "Last Date: ${ds["price"]}",
-                                                  style: const TextStyle(
-                                                      color: Colors.black54,
-                                                      fontWeight:
-                                                          FontWeight.w500),
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodySmall
+                                                      ?.copyWith(
+                                                          fontWeight:
+                                                              FontWeight.w500),
                                                 ),
                                               ],
                                             ),
@@ -628,10 +710,12 @@ class _HomeState extends State<Home> {
                                               children: [
                                                 Row(
                                                   children: [
-                                                    const Icon(
-                                                        Icons.location_on,
+                                                    Icon(Icons.location_on,
                                                         size: 18,
-                                                        color: Colors.black54),
+                                                        color: Theme.of(context)
+                                                            .textTheme
+                                                            .bodySmall
+                                                            ?.color),
                                                     const SizedBox(width: 4),
                                                     ConstrainedBox(
                                                       constraints:
@@ -641,31 +725,45 @@ class _HomeState extends State<Home> {
                                                         "Location: ${ds["location"]}",
                                                         overflow: TextOverflow
                                                             .ellipsis,
-                                                        style: const TextStyle(
-                                                            fontSize: 13,
-                                                            color: Color(
-                                                                0XFF5d2ee6),
-                                                            fontWeight:
-                                                                FontWeight
-                                                                    .w500),
+                                                        style: Theme.of(context)
+                                                            .textTheme
+                                                            .bodySmall
+                                                            ?.copyWith(
+                                                                fontSize: 13,
+                                                                color: Theme.of(
+                                                                        context)
+                                                                    .colorScheme
+                                                                    .primary,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w500),
                                                       ),
                                                     ),
                                                   ],
                                                 ),
                                                 Row(
                                                   children: [
-                                                    const Icon(Icons.people,
+                                                    Icon(Icons.people,
                                                         size: 18,
-                                                        color: Colors.black54),
+                                                        color: Theme.of(context)
+                                                            .textTheme
+                                                            .bodySmall
+                                                            ?.color),
                                                     const SizedBox(width: 4),
                                                     Text(
                                                       "Vacancies: ${ds["vacancies"]}",
-                                                      style: const TextStyle(
-                                                          fontSize: 13,
-                                                          color:
-                                                              Color(0XFF5d2ee6),
-                                                          fontWeight:
-                                                              FontWeight.w500),
+                                                      style: Theme.of(context)
+                                                          .textTheme
+                                                          .bodySmall
+                                                          ?.copyWith(
+                                                              fontSize: 13,
+                                                              color: Theme.of(
+                                                                      context)
+                                                                  .colorScheme
+                                                                  .primary,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w500),
                                                     ),
                                                   ],
                                                 ),

@@ -55,17 +55,18 @@ class _ProfileState extends State<Profile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0XFFF5F5F5),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         leading: IconButton(
             onPressed: () {
               Navigator.pop(context);
             },
-            icon: const Icon(Icons.arrow_back, color: Colors.white)),
-        backgroundColor: const Color(0XFF8a4af3),
-        title: const Text(
+            icon: Icon(Icons.arrow_back,
+                color: Theme.of(context).colorScheme.onPrimary)),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        title: Text(
           "Profile",
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
         ),
         centerTitle: true,
         actions: [
@@ -73,7 +74,8 @@ class _ProfileState extends State<Profile> {
           if (widget.userId != null ||
               FirebaseAuth.instance.currentUser != null)
             IconButton(
-              icon: const Icon(Icons.logout, color: Colors.white),
+              icon: Icon(Icons.logout,
+                  color: Theme.of(context).colorScheme.onPrimary),
               onPressed: () async {
                 bool? confirmLogout = await showDialog(
                   context: context,
@@ -101,14 +103,13 @@ class _ProfileState extends State<Profile> {
         ],
       ),
       body: widget.userId == null && FirebaseAuth.instance.currentUser == null
-          ? const Center(
+          ? Center(
               child: Text(
                 "User not logged in",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black54,
-                ),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
             )
           : StreamBuilder(
@@ -147,31 +148,38 @@ class _ProfileState extends State<Profile> {
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))
+        boxShadow: [
+          BoxShadow(
+            color: Theme.of(context).shadowColor.withOpacity(0.06),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          )
         ],
       ),
       child: Row(
         children: [
-          CircleAvatar(child: Icon(icon, color: Colors.white)),
+          CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              child:
+                  Icon(icon, color: Theme.of(context).colorScheme.onPrimary)),
           const SizedBox(width: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(label,
-                  style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.black54,
-                      fontWeight: FontWeight.w500)),
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.w500)),
               const SizedBox(height: 4),
               Text(
                 value ?? "Not set",
-                style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyLarge
+                    ?.copyWith(fontWeight: FontWeight.w600),
               ),
             ],
           )
@@ -237,22 +245,28 @@ Widget _buildChangePasswordCard(BuildContext context) {
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: const [
-          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))
+        boxShadow: [
+          BoxShadow(
+              color: Theme.of(context).shadowColor.withOpacity(0.06),
+              blurRadius: 6,
+              offset: const Offset(0, 3))
         ],
       ),
       child: Row(
-        children: const [
-          CircleAvatar(child: Icon(Icons.lock, color: Colors.white)),
-          SizedBox(width: 16),
+        children: [
+          CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              child: Icon(Icons.lock,
+                  color: Theme.of(context).colorScheme.onPrimary)),
+          const SizedBox(width: 16),
           Text(
             "Change Password",
-            style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87),
+            style: Theme.of(context)
+                .textTheme
+                .bodyLarge
+                ?.copyWith(fontWeight: FontWeight.w600),
           ),
         ],
       ),

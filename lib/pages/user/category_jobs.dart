@@ -44,10 +44,11 @@ class _CategoryJobsScreenState extends State<CategoryJobsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        foregroundColor: Colors.white,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
         centerTitle: true,
-        title: Text(widget.category),
-        backgroundColor: const Color(0XFF8a4af3),
+        title: Text(widget.category,
+            style: TextStyle(color: Theme.of(context).colorScheme.onPrimary)),
+        backgroundColor: Theme.of(context).colorScheme.primary,
       ),
       body: Padding(
         padding: const EdgeInsets.all(12),
@@ -156,13 +157,14 @@ class _CategoryJobsScreenState extends State<CategoryJobsScreen> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(ds['name'] ?? '',
-                                          style:
-                                              AppWidgets.boldTextFieldStyle()),
+                                          style: AppWidgets.boldTextFieldStyle(
+                                              context)),
                                       const SizedBox(height: 6),
                                       Text(
                                         ds['location'] ?? '',
-                                        style: const TextStyle(
-                                            color: Colors.black54),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall,
                                       ),
                                     ],
                                   ),

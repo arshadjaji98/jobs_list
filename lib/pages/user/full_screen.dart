@@ -9,7 +9,7 @@ class FullScreenImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Theme.of(context).colorScheme.background,
       body: GestureDetector(
         onTap: () => Navigator.pop(context), // tap to close
         child: Center(
@@ -18,8 +18,9 @@ class FullScreenImage extends StatelessWidget {
             child: CachedNetworkImage(
               imageUrl: imageUrl,
               fit: BoxFit.contain,
-              placeholder: (context, url) => const Center(
-                child: CircularProgressIndicator(color: Colors.white),
+              placeholder: (context, url) => Center(
+                child: CircularProgressIndicator(
+                    color: Theme.of(context).colorScheme.onBackground),
               ),
               errorWidget: (context, url, error) =>
                   const Icon(Icons.error, color: Colors.red),

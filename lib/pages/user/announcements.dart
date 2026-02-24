@@ -21,10 +21,10 @@ class Announcements extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Announcements',
-            style: TextStyle(color: Color(0XFF5d2ee6))),
-        backgroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Color(0XFF5d2ee6)),
+        title: Text('Announcements',
+            style: TextStyle(color: Theme.of(context).colorScheme.primary)),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        iconTheme: IconThemeData(color: Theme.of(context).colorScheme.primary),
         elevation: 0,
         centerTitle: true,
       ),
@@ -81,8 +81,7 @@ class Announcements extends StatelessWidget {
                       const SizedBox(height: 8),
                       Text(
                         _formatTimestamp(ts),
-                        style: const TextStyle(
-                            fontSize: 12, color: Colors.black54),
+                        style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],
                   ),

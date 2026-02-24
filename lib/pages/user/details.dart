@@ -104,7 +104,7 @@ class _DetailsState extends State<Details> {
     final currentUser = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
-      backgroundColor: const Color(0XFFF5F5F5),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -146,9 +146,10 @@ class _DetailsState extends State<Details> {
                     top: 40,
                     left: 16,
                     child: CircleAvatar(
-                      backgroundColor: Colors.white,
+                      backgroundColor: Theme.of(context).colorScheme.surface,
                       child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.black),
+                        icon: Icon(Icons.arrow_back,
+                            color: Theme.of(context).iconTheme.color),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ),
@@ -161,7 +162,7 @@ class _DetailsState extends State<Details> {
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: const [
                   BoxShadow(
@@ -176,25 +177,20 @@ class _DetailsState extends State<Details> {
                 children: [
                   Text(
                     widget.name,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0XFF181725),
-                    ),
+                    style: AppWidgets.boldTextFieldStyle(context),
                   ),
                   const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text("Last Date:",
-                          style: AppWidgets.semiBoldTextFieldStyle()),
+                          style: AppWidgets.semiBoldTextFieldStyle(context)),
                       Text(
                         formatDate(widget.price),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.red,
-                        ),
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodyLarge
+                            ?.copyWith(color: Colors.red),
                       ),
                     ],
                   ),
@@ -203,14 +199,11 @@ class _DetailsState extends State<Details> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text("Location:",
-                          style: AppWidgets.semiBoldTextFieldStyle()),
+                          style: AppWidgets.semiBoldTextFieldStyle(context)),
                       Text(
                         widget.location,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0XFF8a4af3),
-                        ),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: Theme.of(context).colorScheme.primary),
                       ),
                     ],
                   ),
@@ -219,14 +212,11 @@ class _DetailsState extends State<Details> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text("Vacancies:",
-                          style: AppWidgets.semiBoldTextFieldStyle()),
+                          style: AppWidgets.semiBoldTextFieldStyle(context)),
                       Text(
                         widget.vacancies,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0XFF8a4af3),
-                        ),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: Theme.of(context).colorScheme.primary),
                       ),
                     ],
                   ),
@@ -235,27 +225,23 @@ class _DetailsState extends State<Details> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text("Posted Date:",
-                          style: AppWidgets.semiBoldTextFieldStyle()),
+                          style: AppWidgets.semiBoldTextFieldStyle(context)),
                       Text(
                         formatPostedDate(widget.postedDate),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0XFF181725),
-                        ),
+                        style: Theme.of(context).textTheme.bodyLarge,
                       ),
                     ],
                   ),
                   const SizedBox(height: 20),
                   Text(
                     "Job Description",
-                    style: AppWidgets.boldTextFieldStyle(),
+                    style: AppWidgets.boldTextFieldStyle(context),
                   ),
                   const SizedBox(height: 8),
                   Linkify(
                     onOpen: _onOpen,
                     text: widget.details,
-                    style: AppWidgets.lightTextFieldStyle(),
+                    style: AppWidgets.lightTextFieldStyle(context),
                     linkStyle: const TextStyle(
                       color: Colors.blue,
                       decoration: TextDecoration.underline,
@@ -292,8 +278,9 @@ class _DetailsState extends State<Details> {
                     height: 50,
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            isSaved ? Colors.grey : const Color(0XFF8a4af3),
+                        backgroundColor: isSaved
+                            ? Theme.of(context).disabledColor
+                            : Theme.of(context).colorScheme.primary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -301,14 +288,14 @@ class _DetailsState extends State<Details> {
                       onPressed: isSaved ? null : () => toggleSaveJob(isSaved),
                       icon: Icon(
                         isSaved ? Icons.bookmark_added : Icons.bookmark_border,
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.onPrimary,
                       ),
                       label: Text(
                         isSaved ? "Job Saved" : "Save Job",
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: Theme.of(context).colorScheme.onPrimary,
                         ),
                       ),
                     ),

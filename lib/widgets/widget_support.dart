@@ -1,35 +1,43 @@
 import 'package:flutter/material.dart';
 
 class AppWidgets {
-  static TextStyle boldTextFieldStyle() {
-    return const TextStyle(
-        color: Colors.black,
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
-        fontFamily: 'Poppins');
+  static TextStyle boldTextFieldStyle(BuildContext context) {
+    final base = Theme.of(context).textTheme.titleLarge;
+    return base?.copyWith(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Poppins',
+        ) ??
+        TextStyle(fontSize: 20, fontWeight: FontWeight.bold);
   }
 
-  static TextStyle headerTextFieldStyle() {
-    return const TextStyle(
-        color: Colors.black,
-        fontSize: 24,
-        fontWeight: FontWeight.bold,
-        fontFamily: 'Poppins');
+  static TextStyle headerTextFieldStyle(BuildContext context) {
+    final base = Theme.of(context).textTheme.headlineSmall;
+    return base?.copyWith(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+          fontFamily: 'Poppins',
+        ) ??
+        TextStyle(fontSize: 24, fontWeight: FontWeight.bold);
   }
 
-  static TextStyle lightTextFieldStyle() {
-    return const TextStyle(
-        color: Colors.black38,
-        fontSize: 13,
-        fontWeight: FontWeight.w500,
-        fontFamily: 'Poppins');
+  static TextStyle lightTextFieldStyle(BuildContext context) {
+    final base = Theme.of(context).textTheme.bodyMedium;
+    return base?.copyWith(
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          fontFamily: 'Poppins',
+        ) ??
+        TextStyle(fontSize: 13, fontWeight: FontWeight.w500);
   }
 
-  static TextStyle semiBoldTextFieldStyle() {
-    return const TextStyle(
-      color: Colors.black,
-      fontSize: 16,
-      fontFamily: 'Poppins',
-    );
+  static TextStyle semiBoldTextFieldStyle(BuildContext context) {
+    final base = Theme.of(context).textTheme.bodyLarge;
+    return base?.copyWith(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          fontFamily: 'Poppins',
+        ) ??
+        TextStyle(fontSize: 16, fontWeight: FontWeight.w600);
   }
 }

@@ -89,9 +89,9 @@ class _LogInState extends State<LogIn> {
                 EdgeInsets.only(top: MediaQuery.of(context).size.height / 3),
             height: MediaQuery.of(context).size.height / 2,
             width: MediaQuery.of(context).size.width,
-            decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
+            decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(40),
                     topRight: Radius.circular(40))),
           ),
@@ -113,7 +113,7 @@ class _LogInState extends State<LogIn> {
                           width: MediaQuery.of(context).size.width,
                           height: MediaQuery.of(context).size.height / 1.5,
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.surface,
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Form(
@@ -123,7 +123,8 @@ class _LogInState extends State<LogIn> {
                               children: [
                                 const SizedBox(height: 20.0),
                                 Text("Login",
-                                    style: AppWidgets.headerTextFieldStyle()),
+                                    style: AppWidgets.headerTextFieldStyle(
+                                        context)),
                                 const SizedBox(height: 30.0),
                                 TextFormField(
                                   controller: userEmailController,
@@ -133,7 +134,8 @@ class _LogInState extends State<LogIn> {
                                   decoration: InputDecoration(
                                     hintText: 'Email',
                                     hintStyle:
-                                        AppWidgets.semiBoldTextFieldStyle(),
+                                        AppWidgets.semiBoldTextFieldStyle(
+                                            context),
                                     prefixIcon:
                                         const Icon(Icons.email_outlined),
                                   ),
@@ -159,7 +161,8 @@ class _LogInState extends State<LogIn> {
                                         )),
                                     hintText: 'Password',
                                     hintStyle:
-                                        AppWidgets.semiBoldTextFieldStyle(),
+                                        AppWidgets.semiBoldTextFieldStyle(
+                                            context),
                                     prefixIcon:
                                         const Icon(Icons.password_outlined),
                                   ),

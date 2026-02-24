@@ -91,9 +91,9 @@ class _SignUpState extends State<SignUp> {
                   EdgeInsets.only(top: MediaQuery.of(context).size.height / 3),
               height: MediaQuery.of(context).size.height / 2,
               width: MediaQuery.of(context).size.width,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: const BorderRadius.only(
                   topLeft: Radius.circular(40),
                   topRight: Radius.circular(40),
                 ),
@@ -122,7 +122,8 @@ class _SignUpState extends State<SignUp> {
                                       left: 20.0, right: 20.0),
                                   width: MediaQuery.of(context).size.width,
                                   decoration: BoxDecoration(
-                                    color: Colors.white,
+                                    color:
+                                        Theme.of(context).colorScheme.surface,
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   child: Form(
@@ -137,7 +138,8 @@ class _SignUpState extends State<SignUp> {
                                         Text(
                                           "Sign Up",
                                           style:
-                                              AppWidgets.headerTextFieldStyle(),
+                                              AppWidgets.headerTextFieldStyle(
+                                                  context),
                                         ),
                                         const SizedBox(height: 30.0),
                                         TextFormField(
@@ -152,7 +154,8 @@ class _SignUpState extends State<SignUp> {
                                           decoration: InputDecoration(
                                             hintText: 'Name',
                                             hintStyle: AppWidgets
-                                                .semiBoldTextFieldStyle(),
+                                                .semiBoldTextFieldStyle(
+                                                    context),
                                             prefixIcon: const Icon(
                                                 Icons.person_outlined),
                                           ),
@@ -170,7 +173,8 @@ class _SignUpState extends State<SignUp> {
                                           decoration: InputDecoration(
                                               hintText: 'Email',
                                               hintStyle: AppWidgets
-                                                  .semiBoldTextFieldStyle(),
+                                                  .semiBoldTextFieldStyle(
+                                                      context),
                                               prefixIcon: const Icon(
                                                   Icons.email_outlined)),
                                         ),
@@ -188,7 +192,8 @@ class _SignUpState extends State<SignUp> {
                                           decoration: InputDecoration(
                                               hintText: 'Password',
                                               hintStyle: AppWidgets
-                                                  .semiBoldTextFieldStyle(),
+                                                  .semiBoldTextFieldStyle(
+                                                      context),
                                               prefixIcon: const Icon(
                                                   Icons.password_outlined)),
                                         ),
