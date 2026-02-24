@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:groceryease_delivery_application/pages/registration/signup.dart';
 import 'package:groceryease_delivery_application/pages/user/details.dart';
+import 'package:groceryease_delivery_application/pages/user/category_jobs.dart';
 import 'package:groceryease_delivery_application/pages/user/favorite.dart';
 import 'package:groceryease_delivery_application/pages/user/profile.dart';
 import 'package:groceryease_delivery_application/pages/user/announcements.dart';
@@ -111,173 +112,167 @@ class _HomeState extends State<Home> {
     return Scaffold(
       backgroundColor: Colors.white,
       drawer: SafeArea(
-          child: Drawer(
-        backgroundColor: const Color(0XFF8a4af3),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            DrawerHeader(
-              child: Center(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white),
+        child: Drawer(
+          backgroundColor: const Color(0XFF8a4af3),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DrawerHeader(
+                child: Center(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white),
+                        ),
+                        child: CircleAvatar(
+                          radius: 30,
+                          backgroundColor: Colors.white,
+                          child: Image.asset('assets/images/logo.jpg'),
+                        ),
                       ),
-                      child: CircleAvatar(
-                        radius: 30,
-                        backgroundColor: Colors.white,
-                        child: Image.asset('assets/images/logo.jpg'),
+                      const SizedBox(height: 12),
+                      Text(
+                        FirebaseAuth.instance.currentUser != null
+                            ? 'Hello, ${username ?? 'User'}'
+                            : 'Welcome, Guest',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      FirebaseAuth.instance.currentUser != null
-                          ? 'Hello, ${username ?? 'User'}'
-                          : 'Welcome, Guest',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-
-            /// ALL JOBS
-            ListTile(
-              leading: Icon(
-                Icons.work_outline,
-                color: selectType == null ? Colors.white : Colors.white70,
-              ),
-              title: Text(
-                "All Jobs",
-                style: TextStyle(
-                  fontWeight:
-                      selectType == null ? FontWeight.bold : FontWeight.normal,
+              ListTile(
+                leading: Icon(
+                  Icons.work_outline,
                   color: selectType == null ? Colors.white : Colors.white70,
                 ),
-              ),
-              selected: selectType == null,
-              selectedTileColor: const Color(0XFFa970f5),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              onTap: () {
-                setState(() {
-                  selectType = null;
-                  _searchQuery = '';
-                  _searchController.clear();
-                });
-                Navigator.pop(context);
-              },
-            ),
-
-            /// ANNOUNCEMENTS
-            ListTile(
-              leading: const Icon(Icons.announcement, color: Colors.white70),
-              title: const Text(
-                'Announcements',
-                style: TextStyle(color: Colors.white70),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const Announcements(),
+                title: Text(
+                  "All Jobs",
+                  style: TextStyle(
+                    fontWeight: selectType == null
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                    color: selectType == null ? Colors.white : Colors.white70,
                   ),
-                );
-              },
-            ),
-
-            const Divider(color: Colors.white38),
-
-            /// CATEGORIES
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: categories.map((cat) {
-                  bool isSelected = selectType == cat["name"];
-
-                  return ListTile(
-                    leading: Icon(
-                      cat["icon"],
-                      color: isSelected ? Colors.white : Colors.white70,
+                ),
+                selected: selectType == null,
+                selectedTileColor: const Color(0XFFa970f5),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                onTap: () {
+                  setState(() {
+                    selectType = null;
+                    _searchQuery = '';
+                    _searchController.clear();
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.announcement, color: Colors.white70),
+                title: const Text(
+                  'Announcements',
+                  style: TextStyle(color: Colors.white70),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const Announcements(),
                     ),
-                    title: Text(
-                      cat["name"],
-                      style: TextStyle(
-                        fontWeight:
-                            isSelected ? FontWeight.bold : FontWeight.normal,
+                  );
+                },
+              ),
+              const Divider(color: Colors.white38),
+              Expanded(
+                child: ListView(
+                  padding: EdgeInsets.zero,
+                  children: categories.map((cat) {
+                    bool isSelected = selectType == cat["name"];
+
+                    return ListTile(
+                      leading: Icon(
+                        cat["icon"],
                         color: isSelected ? Colors.white : Colors.white70,
                       ),
-                    ),
-                    selected: isSelected,
-                    selectedTileColor: const Color(0XFFa970f5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      title: Text(
+                        cat["name"],
+                        style: TextStyle(
+                          fontWeight:
+                              isSelected ? FontWeight.bold : FontWeight.normal,
+                          color: isSelected ? Colors.white : Colors.white70,
+                        ),
+                      ),
+                      selected: isSelected,
+                      selectedTileColor: const Color(0XFFa970f5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                CategoryJobsScreen(category: cat["name"]),
+                          ),
+                        );
+                      },
+                    );
+                  }).toList(),
+                ),
+              ),
+              const Divider(thickness: 1, height: 0, color: Colors.white38),
+              Column(
+                children: [
+                  ListTile(
+                    leading:
+                        const Icon(Icons.person_outline, color: Colors.white70),
+                    title: const Text(
+                      "Profile",
+                      style: TextStyle(color: Colors.white70),
                     ),
                     onTap: () {
-                      setState(() {
-                        selectType = cat["name"];
-                        _searchQuery = '';
-                        _searchController.clear();
-                      });
-                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const Profile(),
+                        ),
+                      );
                     },
-                  );
-                }).toList(),
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.login, color: Colors.white70),
+                    title: const Text(
+                      "Create/Login",
+                      style: TextStyle(color: Colors.white70),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SignUp(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
-            ),
-
-            const Divider(thickness: 1, height: 0, color: Colors.white38),
-
-            /// BOTTOM SECTION
-            Column(
-              children: [
-                ListTile(
-                  leading:
-                      const Icon(Icons.person_outline, color: Colors.white70),
-                  title: const Text(
-                    "Profile",
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const Profile(),
-                      ),
-                    );
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.login, color: Colors.white70),
-                  title: const Text(
-                    "Create/Login",
-                    style: TextStyle(color: Colors.white70),
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SignUp(),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ],
+            ],
+          ),
         ),
-      )),
+      ),
       appBar: AppBar(
         centerTitle: true,
         title:
@@ -309,8 +304,7 @@ class _HomeState extends State<Home> {
           children: [
             Card(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+                  borderRadius: BorderRadius.circular(12)),
               child: Container(
                 padding: const EdgeInsets.only(top: 8),
                 child: TextField(
@@ -388,7 +382,6 @@ class _HomeState extends State<Home> {
               child: StreamBuilder(
                 stream: getFilteredProducts(),
                 builder: (context, AsyncSnapshot snapshot) {
-                  // Check for errors
                   if (snapshot.hasError) {
                     return Center(
                       child: Column(
@@ -417,8 +410,6 @@ class _HomeState extends State<Home> {
                       ),
                     );
                   }
-
-                  // Show loading skeleton while waiting for initial data
                   if (snapshot.connectionState == ConnectionState.waiting &&
                       !snapshot.hasData) {
                     return ListView.builder(
@@ -455,8 +446,6 @@ class _HomeState extends State<Home> {
                       },
                     );
                   }
-
-                  // Check if data is empty
                   if (!snapshot.hasData || snapshot.data.docs.isEmpty) {
                     return Center(
                       child: Text(
@@ -468,8 +457,6 @@ class _HomeState extends State<Home> {
                       ),
                     );
                   }
-
-                  // Filter jobs based on search query
                   final filteredDocs = snapshot.data.docs.where((doc) {
                     if (_searchQuery.isEmpty) return true;
                     final jobName =
@@ -480,8 +467,6 @@ class _HomeState extends State<Home> {
                     return jobName.contains(searchLower) ||
                         jobDetail.contains(searchLower);
                   }).toList();
-
-                  // Sort client-side if category is selected (to avoid needing composite index)
                   if (selectType != null) {
                     filteredDocs.sort((a, b) {
                       final timeA = a['timestamp'] as Timestamp?;
@@ -493,8 +478,6 @@ class _HomeState extends State<Home> {
                       return _sortOrder == 'Latest' ? comparison : -comparison;
                     });
                   }
-
-                  // Show message if no jobs match search
                   if (filteredDocs.isEmpty && _searchQuery.isNotEmpty) {
                     return Center(
                       child: Text(
