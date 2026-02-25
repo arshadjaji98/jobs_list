@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
       colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       useMaterial3: true,
       appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0XFF8a4af3),
+        backgroundColor: Color.fromARGB(255, 119, 74, 243),
         titleTextStyle: TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 16,
@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
     return ThemeData(
       brightness: Brightness.dark,
       colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple, brightness: Brightness.dark),
+          seedColor: Colors.deepPurpleAccent, brightness: Brightness.dark),
       useMaterial3: true,
       appBarTheme: const AppBarTheme(
         backgroundColor: Color(0xFF5a2ee6),

@@ -9,7 +9,7 @@ class FullScreenImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: GestureDetector(
         onTap: () => Navigator.pop(context), // tap to close
         child: Center(
@@ -20,7 +20,7 @@ class FullScreenImage extends StatelessWidget {
               fit: BoxFit.contain,
               placeholder: (context, url) => Center(
                 child: CircularProgressIndicator(
-                    color: Theme.of(context).colorScheme.onBackground),
+                    color: Theme.of(context).colorScheme.onSurface),
               ),
               errorWidget: (context, url, error) =>
                   const Icon(Icons.error, color: Colors.red),

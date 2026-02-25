@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously, unnecessary_new
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -10,8 +8,6 @@ import 'package:groceryease_delivery_application/pages/registration/signup.dart'
 import 'package:groceryease_delivery_application/responsive/web_responsive.dart';
 import 'package:groceryease_delivery_application/widgets/utills.dart';
 import 'package:groceryease_delivery_application/widgets/widget_support.dart';
-
-// admin pages removed
 
 class LogIn extends StatefulWidget {
   final void Function()? onTap;

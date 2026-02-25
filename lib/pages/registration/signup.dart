@@ -76,219 +76,208 @@ class _SignUpState extends State<SignUp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        child: Stack(
-          children: [
-            Container(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height / 2,
-              decoration: const BoxDecoration(
-                color: Color(0XFF8a4af3),
+      body: Stack(
+        children: [
+          Container(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height / 2,
+            decoration: const BoxDecoration(
+              color: Color(0XFF8a4af3),
+            ),
+          ),
+          Container(
+            margin:
+                EdgeInsets.only(top: MediaQuery.of(context).size.height / 3),
+            height: MediaQuery.of(context).size.height / 2,
+            width: MediaQuery.of(context).size.width,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surface,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(40),
+                topRight: Radius.circular(40),
               ),
             ),
-            Container(
-              margin:
-                  EdgeInsets.only(top: MediaQuery.of(context).size.height / 3),
-              height: MediaQuery.of(context).size.height / 2,
-              width: MediaQuery.of(context).size.width,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surface,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(40),
-                  topRight: Radius.circular(40),
-                ),
-              ),
-            ),
-            Center(
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    const SizedBox(height: 50),
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: WebResponsive(
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Material(
-                                elevation: 5.0,
-                                borderRadius: BorderRadius.circular(20),
-                                child: Container(
-                                  padding: const EdgeInsets.only(
-                                      left: 20.0, right: 20.0),
-                                  width: MediaQuery.of(context).size.width,
-                                  decoration: BoxDecoration(
-                                    color:
-                                        Theme.of(context).colorScheme.surface,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Form(
-                                    key: _formkey,
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: [
-                                        const SizedBox(height: 20.0),
-                                        Text(
-                                          "Sign Up",
-                                          style:
-                                              AppWidgets.headerTextFieldStyle(
+          ),
+          Center(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 50),
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: WebResponsive(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Material(
+                              elevation: 5.0,
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                padding: const EdgeInsets.only(
+                                    left: 20.0, right: 20.0),
+                                width: MediaQuery.of(context).size.width,
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Form(
+                                  key: _formkey,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      const SizedBox(height: 20.0),
+                                      Text(
+                                        "Sign Up",
+                                        style: AppWidgets.headerTextFieldStyle(
+                                            context),
+                                      ),
+                                      const SizedBox(height: 30.0),
+                                      TextFormField(
+                                        controller: nameController,
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Please Enter Name';
+                                          }
+                                          return null;
+                                        },
+                                        decoration: InputDecoration(
+                                          hintText: 'Name',
+                                          hintStyle:
+                                              AppWidgets.semiBoldTextFieldStyle(
                                                   context),
+                                          prefixIcon:
+                                              const Icon(Icons.person_outlined),
                                         ),
-                                        const SizedBox(height: 30.0),
-                                        TextFormField(
-                                          controller: nameController,
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.isEmpty) {
-                                              return 'Please Enter Name';
-                                            }
-                                            return null;
-                                          },
-                                          decoration: InputDecoration(
-                                            hintText: 'Name',
+                                      ),
+                                      const SizedBox(height: 30.0),
+                                      TextFormField(
+                                        controller: emailController,
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Please Enter E-mail';
+                                          }
+                                          return null;
+                                        },
+                                        decoration: InputDecoration(
+                                            hintText: 'Email',
                                             hintStyle: AppWidgets
                                                 .semiBoldTextFieldStyle(
                                                     context),
                                             prefixIcon: const Icon(
-                                                Icons.person_outlined),
-                                          ),
-                                        ),
-                                        const SizedBox(height: 30.0),
-                                        TextFormField(
-                                          controller: emailController,
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.isEmpty) {
-                                              return 'Please Enter E-mail';
-                                            }
-                                            return null;
-                                          },
-                                          decoration: InputDecoration(
-                                              hintText: 'Email',
-                                              hintStyle: AppWidgets
-                                                  .semiBoldTextFieldStyle(
-                                                      context),
-                                              prefixIcon: const Icon(
-                                                  Icons.email_outlined)),
-                                        ),
-                                        const SizedBox(height: 30.0),
-                                        TextFormField(
-                                          controller: passwordController,
-                                          validator: (value) {
-                                            if (value == null ||
-                                                value.isEmpty) {
-                                              return 'Please Enter Password';
-                                            }
-                                            return null;
-                                          },
-                                          obscureText: true,
-                                          decoration: InputDecoration(
-                                              hintText: 'Password',
-                                              hintStyle: AppWidgets
-                                                  .semiBoldTextFieldStyle(
-                                                      context),
-                                              prefixIcon: const Icon(
-                                                  Icons.password_outlined)),
-                                        ),
-                                        const SizedBox(height: 20.0),
-                                        InkWell(
-                                          onTap: () async {
-                                            if (_formkey.currentState!
-                                                .validate()) {
-                                              setState(() {});
-                                              await registration();
-                                            }
-                                          },
-                                          child: Material(
-                                            elevation: 5.0,
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                            child: Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 8.0),
-                                              width: 200,
-                                              decoration: BoxDecoration(
-                                                color: const Color(0XFF8a4af3),
-                                                borderRadius:
-                                                    BorderRadius.circular(20),
-                                              ),
-                                              child: _isLoading
-                                                  ? const Center(
-                                                      child: SpinKitWave(
-                                                          size: 20,
-                                                          color: Colors.white))
-                                                  : const Center(
-                                                      child: Text(
-                                                        "SIGN IN",
-                                                        style: TextStyle(
-                                                          color: Colors.white,
-                                                          fontSize: 18.0,
-                                                          fontFamily:
-                                                              'Poppins1',
-                                                          fontWeight:
-                                                              FontWeight.bold,
-                                                        ),
+                                                Icons.email_outlined)),
+                                      ),
+                                      const SizedBox(height: 30.0),
+                                      TextFormField(
+                                        controller: passwordController,
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Please Enter Password';
+                                          }
+                                          return null;
+                                        },
+                                        obscureText: true,
+                                        decoration: InputDecoration(
+                                            hintText: 'Password',
+                                            hintStyle: AppWidgets
+                                                .semiBoldTextFieldStyle(
+                                                    context),
+                                            prefixIcon: const Icon(
+                                                Icons.password_outlined)),
+                                      ),
+                                      const SizedBox(height: 20.0),
+                                      InkWell(
+                                        onTap: () async {
+                                          if (_formkey.currentState!
+                                              .validate()) {
+                                            setState(() {});
+                                            await registration();
+                                          }
+                                        },
+                                        child: Material(
+                                          elevation: 5.0,
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 8.0),
+                                            width: 200,
+                                            decoration: BoxDecoration(
+                                              color: const Color(0XFF8a4af3),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                            ),
+                                            child: _isLoading
+                                                ? const Center(
+                                                    child: SpinKitWave(
+                                                        size: 20,
+                                                        color: Colors.white))
+                                                : const Center(
+                                                    child: Text(
+                                                      "SIGN IN",
+                                                      style: TextStyle(
+                                                        color: Colors.white,
+                                                        fontSize: 18.0,
+                                                        fontFamily: 'Poppins1',
+                                                        fontWeight:
+                                                            FontWeight.bold,
                                                       ),
                                                     ),
-                                            ),
+                                                  ),
                                           ),
                                         ),
-                                        const SizedBox(height: 10.0),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            const Text(
-                                              "Already have an account? ",
-                                              style: TextStyle(
-                                                fontFamily: 'Poppins',
-                                                fontSize: 14,
-                                              ),
+                                      ),
+                                      const SizedBox(height: 10.0),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Text(
+                                            "Already have an account? ",
+                                            style: TextStyle(
+                                              fontFamily: 'Poppins',
+                                              fontSize: 14,
                                             ),
-                                            TextButton(
-                                                onPressed: () {
-                                                  Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              const LogIn()));
-                                                },
-                                                child: const Text("Login",
-                                                    style: TextStyle(
-                                                        fontFamily: 'Poppins',
-                                                        fontSize: 18,
-                                                        decoration:
-                                                            TextDecoration
-                                                                .underline,
-                                                        fontWeight:
-                                                            FontWeight.bold))),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 10.0),
-                                      ],
-                                    ),
+                                          ),
+                                          TextButton(
+                                              onPressed: () {
+                                                Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            const LogIn()));
+                                              },
+                                              child: const Text("Login",
+                                                  style: TextStyle(
+                                                      fontFamily: 'Poppins',
+                                                      fontSize: 18,
+                                                      decoration: TextDecoration
+                                                          .underline,
+                                                      fontWeight:
+                                                          FontWeight.bold))),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 10.0),
+                                    ],
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

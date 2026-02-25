@@ -104,7 +104,7 @@ class _FavoriteState extends State<Favorite> {
                             type: ds['type'],
                             location: ds['location'],
                             vacancies: ds['vacancies'],
-                            favourite: [],
+                            favourite: const [],
                             postedDate: ds['timestamp'],
                           ),
                         ),

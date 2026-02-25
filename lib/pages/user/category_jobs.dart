@@ -79,9 +79,6 @@ class _CategoryJobsScreenState extends State<CategoryJobsScreen> {
                   }
 
                   final docs = snapshot.data?.docs ?? [];
-                  // If the stream is still waiting but produced no data yet,
-                  // show a loader. If the stream finished or is active and
-                  // there are no documents, show an empty-state message.
                   if (snapshot.connectionState == ConnectionState.waiting &&
                       docs.isEmpty) {
                     return const Center(child: CircularProgressIndicator());
