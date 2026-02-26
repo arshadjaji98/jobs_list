@@ -16,17 +16,19 @@ class MyApp extends StatelessWidget {
 
   ThemeData _lightTheme() {
     return ThemeData(
-      colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+      // use a more vibrant "grocery"/"jobs" friendly teal color scheme
+      colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
       useMaterial3: true,
       appBarTheme: const AppBarTheme(
-        backgroundColor: Color.fromARGB(255, 119, 74, 243),
+        backgroundColor: Colors.teal,
         titleTextStyle: TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 16,
         ),
         iconTheme: IconThemeData(color: Colors.white),
       ),
-      scaffoldBackgroundColor: Colors.white,
+      // a soft off-white background gives a warmer, less stark feel
+      scaffoldBackgroundColor: Colors.teal[50],
       cardTheme: const CardThemeData(color: Colors.white),
     );
   }
@@ -34,19 +36,21 @@ class MyApp extends StatelessWidget {
   ThemeData _darkTheme() {
     return ThemeData(
       brightness: Brightness.dark,
+      // darker teal accents for night mode
       colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurpleAccent, brightness: Brightness.dark),
+          seedColor: Colors.tealAccent, brightness: Brightness.dark),
       useMaterial3: true,
       appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF5a2ee6),
+        backgroundColor: Colors.teal,
         titleTextStyle: TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 16,
         ),
         iconTheme: IconThemeData(color: Colors.white),
       ),
-      scaffoldBackgroundColor: const Color(0xFF121212),
-      cardTheme: const CardThemeData(color: Color(0xFF1E1E1E)),
+      // dark background with a hint of teal
+      scaffoldBackgroundColor: const Color(0xFF0D1F24),
+      cardTheme: const CardThemeData(color: Color(0xFF1E2A2F)),
     );
   }
 

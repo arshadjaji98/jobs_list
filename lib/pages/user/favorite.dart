@@ -125,8 +125,10 @@ class _FavoriteState extends State<Favorite> {
                               height: 100,
                               width: 100,
                               fit: BoxFit.cover,
-                              placeholder: (context, url) =>
-                                  Container(color: Colors.grey[200]),
+                              placeholder: (context, url) => Container(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceVariant),
                               errorWidget: (context, url, error) =>
                                   const Icon(Icons.error),
                             ),
@@ -170,8 +172,8 @@ class _FavoriteState extends State<Favorite> {
                                 "favourite": FieldValue.arrayRemove([ds["id"]])
                               });
                             },
-                            icon: const Icon(Icons.delete_forever,
-                                color: Colors.red),
+                            icon: Icon(Icons.delete_forever,
+                                color: Theme.of(context).colorScheme.error),
                           ),
                         ],
                       ),

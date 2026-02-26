@@ -250,7 +250,8 @@ class _HomeState extends State<Home> {
                         ),
                       ),
                       selected: isSelected,
-                      selectedTileColor: const Color(0XFFa970f5),
+                      selectedTileColor:
+                          Theme.of(context).colorScheme.primaryContainer,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -370,10 +371,11 @@ class _HomeState extends State<Home> {
               margin: const EdgeInsets.only(right: 12),
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0XFFececf8),
+                color: Theme.of(context).colorScheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: const Icon(Icons.bookmark, color: Color(0XFF8a4af3)),
+              child: Icon(Icons.bookmark,
+                  color: Theme.of(context).colorScheme.primary),
             ),
           )
         ],
@@ -437,7 +439,8 @@ class _HomeState extends State<Home> {
                                     order == 'Latest'
                                         ? Icons.access_time
                                         : Icons.history_toggle_off,
-                                    color: const Color(0xFF8a4af3),
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
                                     size: 20,
                                   ),
                                   const SizedBox(width: 8),
@@ -465,16 +468,17 @@ class _HomeState extends State<Home> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.error_outline,
-                              color: Colors.red, size: 48),
+                          Icon(Icons.error_outline,
+                              color: Theme.of(context).colorScheme.error,
+                              size: 48),
                           const SizedBox(height: 16),
                           Text(
                             'Error: ${snapshot.error}',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
-                              color: Colors.red,
+                              color: Theme.of(context).colorScheme.error,
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -505,18 +509,24 @@ class _HomeState extends State<Home> {
                               children: [
                                 Container(
                                   height: 150,
-                                  color: Colors.grey[300],
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceVariant,
                                 ),
                                 const SizedBox(height: 12),
                                 Container(
                                     height: 16,
                                     width: 200,
-                                    color: Colors.grey[300]),
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .surfaceVariant),
                                 const SizedBox(height: 8),
                                 Container(
                                     height: 14,
                                     width: 120,
-                                    color: Colors.grey[300]),
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .surfaceVariant),
                               ],
                             ),
                           ),
@@ -636,7 +646,9 @@ class _HomeState extends State<Home> {
                                                 fit: BoxFit.cover,
                                                 placeholder: (context, url) =>
                                                     Container(
-                                                        color: Colors.grey[200],
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .surfaceVariant,
                                                         height: 180),
                                                 errorWidget:
                                                     (context, url, error) =>
@@ -653,7 +665,9 @@ class _HomeState extends State<Home> {
                                                         horizontal: 8,
                                                         vertical: 4),
                                                     decoration: BoxDecoration(
-                                                      color: Colors.green,
+                                                      color: Theme.of(context)
+                                                          .colorScheme
+                                                          .primary,
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                               8),

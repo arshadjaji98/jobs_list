@@ -23,7 +23,7 @@ class FullScreenImage extends StatelessWidget {
                     color: Theme.of(context).colorScheme.onSurface),
               ),
               errorWidget: (context, url, error) =>
-                  const Icon(Icons.error, color: Colors.red),
+                  Icon(Icons.error, color: Theme.of(context).colorScheme.error),
             ),
           ),
         ),

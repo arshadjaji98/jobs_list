@@ -79,7 +79,7 @@ class _DetailsState extends State<Details> {
   Future<void> toggleSaveJob(bool isSaved) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      Utils.toastMessage("Please sign in to save jobs");
+      Utils.toastMessage("Please sign in to save jobs", context: context);
       return;
     }
     final userId = user.uid;
@@ -96,7 +96,7 @@ class _DetailsState extends State<Details> {
       "favourite": FieldValue.arrayUnion([userId]),
     });
 
-    Utils.toastMessage("Job saved successfully");
+    Utils.toastMessage("Job saved successfully", context: context);
   }
 
   @override
@@ -131,9 +131,9 @@ class _DetailsState extends State<Details> {
                         width: double.infinity,
                         height: MediaQuery.of(context).size.height / 2.5,
                         fit: BoxFit.cover,
-                        placeholder: (context, url) => const Center(
+                        placeholder: (context, url) => Center(
                           child: SpinKitWave(
-                            color: Color(0XFF8a4af3),
+                            color: Theme.of(context).colorScheme.primary,
                             size: 50.0,
                           ),
                         ),
@@ -164,11 +164,11 @@ class _DetailsState extends State<Details> {
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: const [
+                boxShadow: [
                   BoxShadow(
-                    color: Colors.black12,
+                    color: Theme.of(context).shadowColor.withOpacity(0.1),
                     blurRadius: 10,
-                    offset: Offset(0, 5),
+                    offset: const Offset(0, 5),
                   )
                 ],
               ),
@@ -187,10 +187,8 @@ class _DetailsState extends State<Details> {
                           style: AppWidgets.semiBoldTextFieldStyle(context)),
                       Text(
                         formatDate(widget.price),
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyLarge
-                            ?.copyWith(color: Colors.red),
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                            color: Theme.of(context).colorScheme.error),
                       ),
                     ],
                   ),
@@ -242,8 +240,8 @@ class _DetailsState extends State<Details> {
                     onOpen: _onOpen,
                     text: widget.details,
                     style: AppWidgets.lightTextFieldStyle(context),
-                    linkStyle: const TextStyle(
-                      color: Colors.blue,
+                    linkStyle: TextStyle(
+                      color: Theme.of(context).colorScheme.primary,
                       decoration: TextDecoration.underline,
                     ),
                   ),

@@ -58,9 +58,9 @@ class _SignUpState extends State<SignUp> {
           context,
           MaterialPageRoute(builder: (context) => const Home()),
         );
-        Utils.toastMessage("Registered Successfully");
+        Utils.toastMessage("Registered Successfully", context: context);
       }).onError((e, s) {
-        Utils.toastMessage(e.toString());
+        Utils.toastMessage(e.toString(), context: context);
       });
     } on FirebaseAuthException catch (e) {
       Utils.toastMessage(e.toString());
@@ -81,8 +81,8 @@ class _SignUpState extends State<SignUp> {
           Container(
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height / 2,
-            decoration: const BoxDecoration(
-              color: Color(0XFF8a4af3),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
             ),
           ),
           Container(
@@ -208,20 +208,26 @@ class _SignUpState extends State<SignUp> {
                                                 vertical: 8.0),
                                             width: 200,
                                             decoration: BoxDecoration(
-                                              color: const Color(0XFF8a4af3),
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
                                               borderRadius:
                                                   BorderRadius.circular(20),
                                             ),
                                             child: _isLoading
-                                                ? const Center(
+                                                ? Center(
                                                     child: SpinKitWave(
                                                         size: 20,
-                                                        color: Colors.white))
-                                                : const Center(
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .onPrimary))
+                                                : Center(
                                                     child: Text(
                                                       "SIGN IN",
                                                       style: TextStyle(
-                                                        color: Colors.white,
+                                                        color: Theme.of(context)
+                                                            .colorScheme
+                                                            .onPrimary,
                                                         fontSize: 18.0,
                                                         fontFamily: 'Poppins1',
                                                         fontWeight:

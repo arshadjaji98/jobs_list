@@ -140,8 +140,10 @@ class _CategoryJobsScreenState extends State<CategoryJobsScreen> {
                                     child: CachedNetworkImage(
                                       imageUrl: ds['image'] ?? '',
                                       fit: BoxFit.cover,
-                                      placeholder: (c, u) =>
-                                          Container(color: Colors.grey[200]),
+                                      placeholder: (c, u) => Container(
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .surfaceVariant),
                                       errorWidget: (c, u, e) =>
                                           const Icon(Icons.error),
                                     ),

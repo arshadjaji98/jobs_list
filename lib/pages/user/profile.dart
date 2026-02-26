@@ -240,7 +240,7 @@ Widget _buildChangePasswordCard(BuildContext context) {
       );
 
       if (changed == true) {
-        Utils.toastMessage("Password changed successfully");
+        Utils.toastMessage("Password changed successfully", context: context);
       }
     },
     child: Container(

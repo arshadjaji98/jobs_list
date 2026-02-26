@@ -52,17 +52,20 @@ class _LogInState extends State<LogIn> {
             MaterialPageRoute(builder: (context) => const Home()),
           );
         } else {
-          Utils.toastMessage("User record not found.");
+          Utils.toastMessage("User record not found.", context: context);
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const LogIn()),
           );
         }
-        Utils.toastMessage("Login successful! Redirecting...");
+        Utils.toastMessage("Login successful! Redirecting...",
+            context: context);
       } on FirebaseAuthException catch (e) {
-        Utils.toastMessage(e.message ?? "Authentication error occurred.");
+        Utils.toastMessage(e.message ?? "Authentication error occurred.",
+            context: context);
       } catch (e) {
-        Utils.toastMessage("An unexpected error occurred: ${e.toString()}");
+        Utils.toastMessage("An unexpected error occurred: \\${e.toString()}",
+            context: context);
       } finally {
         setState(() {
           _isLoading = false;
@@ -79,7 +82,8 @@ class _LogInState extends State<LogIn> {
           Container(
               width: MediaQuery.of(context).size.width,
               height: MediaQuery.of(context).size.height / 2.5,
-              decoration: const BoxDecoration(color: Color(0XFF8a4af3))),
+              decoration:
+                  BoxDecoration(color: Theme.of(context).colorScheme.primary)),
           Container(
             margin:
                 EdgeInsets.only(top: MediaQuery.of(context).size.height / 3),
@@ -175,13 +179,16 @@ class _LogInState extends State<LogIn> {
                                   },
                                   child: Container(
                                     alignment: Alignment.topRight,
-                                    child: const Text(
+                                    child: Text(
                                       "Forgot Password?",
                                       style: TextStyle(
                                           fontFamily: 'Poppins',
                                           fontSize: 14,
                                           decoration: TextDecoration.underline,
-                                          fontWeight: FontWeight.w500),
+                                          fontWeight: FontWeight.w500,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary),
                                     ),
                                   ),
                                 ),
@@ -204,19 +211,25 @@ class _LogInState extends State<LogIn> {
                                           vertical: 8.0),
                                       width: 200,
                                       decoration: BoxDecoration(
-                                        color: const Color(0XFF8a4af3),
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
                                         borderRadius: BorderRadius.circular(20),
                                       ),
                                       child: _isLoading
-                                          ? const Center(
+                                          ? Center(
                                               child: SpinKitWave(
                                                   size: 20,
-                                                  color: Colors.white))
-                                          : const Center(
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onPrimary))
+                                          : Center(
                                               child: Text(
                                                 "LOGIN",
                                                 style: TextStyle(
-                                                  color: Colors.white,
+                                                  color: Theme.of(context)
+                                                      .colorScheme
+                                                      .onPrimary,
                                                   fontSize: 18.0,
                                                   fontFamily: 'Poppins1',
                                                   fontWeight: FontWeight.bold,
@@ -247,13 +260,16 @@ class _LogInState extends State<LogIn> {
                                                   const SignUp()),
                                         );
                                       },
-                                      child: const Text(
+                                      child: Text(
                                         "Sign up",
                                         style: TextStyle(
                                           fontFamily: 'Poppins',
                                           fontSize: 16,
                                           decoration: TextDecoration.underline,
                                           fontWeight: FontWeight.bold,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
                                         ),
                                       ),
                                     ),
@@ -276,15 +292,19 @@ class _LogInState extends State<LogIn> {
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(20),
                                       border: Border.all(
-                                        color: const Color(0XFF8a4af3),
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
                                         width: 2,
                                       ),
                                     ),
-                                    child: const Center(
+                                    child: Center(
                                       child: Text(
                                         "Continue to Jobs",
                                         style: TextStyle(
-                                          color: Color(0XFF8a4af3),
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
                                           fontSize: 16,
                                           fontWeight: FontWeight.bold,
                                           fontFamily: 'Poppins1',

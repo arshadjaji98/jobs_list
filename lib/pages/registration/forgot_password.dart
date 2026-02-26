@@ -21,10 +21,11 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   resetPassword() async {
     try {
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-      Utils.toastMessage("Password reset email sent. Please check your inbox.");
+      Utils.toastMessage("Password reset email sent. Please check your inbox.",
+          context: context);
     } on FirebaseAuthException catch (e) {
       if (e.code == "user-not-found") {
-        Utils.toastMessage("No user found for that email.");
+        Utils.toastMessage("No user found for that email.", context: context);
       }
     }
   }
@@ -32,17 +33,17 @@ class _ForgotPasswordState extends State<ForgotPassword> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade200,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: WebResponsive(
         child: Column(
           children: [
             const SizedBox(height: 70.0),
             Container(
               alignment: Alignment.topCenter,
-              child: const Text(
+              child: Text(
                 "Password Recovery",
                 style: TextStyle(
-                    color: Colors.black,
+                    color: Theme.of(context).colorScheme.primary,
                     fontSize: 30.0,
                     fontWeight: FontWeight.bold),
               ),
@@ -50,10 +51,10 @@ class _ForgotPasswordState extends State<ForgotPassword> {
             const SizedBox(
               height: 10.0,
             ),
-            const Text(
+            Text(
               "Enter your mail",
               style: TextStyle(
-                  color: Colors.black,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
                   fontSize: 20.0,
                   fontWeight: FontWeight.bold),
             ),
@@ -67,8 +68,9 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                           Container(
                             padding: const EdgeInsets.only(left: 10.0),
                             decoration: BoxDecoration(
-                              border:
-                                  Border.all(color: Colors.black, width: 2.0),
+                              border: Border.all(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  width: 2.0),
                               borderRadius: BorderRadius.circular(30),
                             ),
                             child: TextFormField(
@@ -79,14 +81,22 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                                 }
                                 return null;
                               },
-                              style: const TextStyle(color: Colors.black),
-                              decoration: const InputDecoration(
+                              style: TextStyle(
+                                  color: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge
+                                      ?.color),
+                              decoration: InputDecoration(
                                   hintText: "Email",
                                   hintStyle: TextStyle(
-                                      fontSize: 18.0, color: Colors.black),
+                                      fontSize: 18.0,
+                                      color: Theme.of(context)
+                                          .textTheme
+                                          .bodyLarge
+                                          ?.color),
                                   prefixIcon: Icon(
                                     Icons.person,
-                                    color: Colors.black,
+                                    color: Theme.of(context).iconTheme.color,
                                     size: 30.0,
                                   ),
                                   border: InputBorder.none),
@@ -106,13 +116,15 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                               width: 140,
                               padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
-                                  color: Colors.black,
+                                  color: Theme.of(context).colorScheme.primary,
                                   borderRadius: BorderRadius.circular(10)),
-                              child: const Center(
+                              child: Center(
                                 child: Text(
                                   "Send Email",
                                   style: TextStyle(
-                                      color: Colors.white,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onPrimary,
                                       fontSize: 18.0,
                                       fontWeight: FontWeight.bold),
                                 ),
@@ -125,10 +137,14 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Text(
+                              Text(
                                 "Don't have an account?",
                                 style: TextStyle(
-                                    fontSize: 18.0, color: Colors.black),
+                                    fontSize: 18.0,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge
+                                        ?.color),
                               ),
                               const SizedBox(
                                 width: 5.0,
@@ -141,10 +157,11 @@ class _ForgotPasswordState extends State<ForgotPassword> {
                                           builder: (context) =>
                                               const SignUp()));
                                 },
-                                child: const Text(
+                                child: Text(
                                   "Create",
                                   style: TextStyle(
-                                      color: Colors.green,
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
                                       fontSize: 20.0,
                                       fontWeight: FontWeight.w500),
                                 ),
