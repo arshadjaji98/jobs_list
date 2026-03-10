@@ -96,12 +96,6 @@ class _HomeState extends State<Home> {
       collection = collection.where("type", isEqualTo: selectType);
     }
 
-    // Only orderBy if no filters are applied to avoid needing composite indexes
-    if (selectType == null) {
-      collection =
-          collection.orderBy('timestamp', descending: _sortOrder == 'Latest');
-    }
-
     return collection.snapshots().handleError((error) {
       if (kDebugMode) {
         print('Firestore query error: $error');
@@ -410,9 +404,9 @@ class _HomeState extends State<Home> {
               alignment: Alignment.centerLeft,
               child: Container(
                 margin: const EdgeInsets.only(top: 10, left: 5),
-                width: 120,
-                height: 30,
-                padding: const EdgeInsets.all(4),
+                width: 160,
+                height: 40,
+                padding: const EdgeInsets.symmetric(horizontal: 5),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
@@ -426,11 +420,14 @@ class _HomeState extends State<Home> {
                           fontSize: 14,
                           color: Theme.of(context).textTheme.bodySmall?.color),
                     ),
-                    icon: Icon(Icons.arrow_drop_down,
-                        color: Theme.of(context).colorScheme.primary),
+                    icon: Icon(
+                      Icons.arrow_drop_down,
+                      color: Theme.of(context).colorScheme.primary,
+                      size: 25,
+                    ),
                     dropdownColor: Theme.of(context).colorScheme.surface,
                     style: Theme.of(context).textTheme.bodyLarge,
-                    items: ['Latest', 'Oldest']
+                    items: ['Latest', 'Oldest', 'This Week', 'This Month']
                         .map((order) => DropdownMenuItem(
                               value: order,
                               child: Row(
@@ -438,7 +435,11 @@ class _HomeState extends State<Home> {
                                   Icon(
                                     order == 'Latest'
                                         ? Icons.access_time
-                                        : Icons.history_toggle_off,
+                                        : order == 'Oldest'
+                                            ? Icons.history_toggle_off
+                                            : order == 'This Week'
+                                                ? Icons.calendar_view_week
+                                                : Icons.calendar_view_month,
                                     color:
                                         Theme.of(context).colorScheme.primary,
                                     size: 20,
@@ -545,6 +546,7 @@ class _HomeState extends State<Home> {
                       ),
                     );
                   }
+                  DateTime now = DateTime.now();
                   final filteredDocs = snapshot.data.docs.where((doc) {
                     if (_searchQuery.isEmpty) return true;
                     final jobName =
@@ -554,18 +556,39 @@ class _HomeState extends State<Home> {
                     final searchLower = _searchQuery.toLowerCase();
                     return jobName.contains(searchLower) ||
                         jobDetail.contains(searchLower);
+                  }).where((doc) {
+                    if (_sortOrder == 'Latest' || _sortOrder == 'Oldest') {
+                      return true;
+                    }
+                    final ts = doc['timestamp'];
+                    if (ts is Timestamp) {
+                      DateTime date = ts.toDate();
+                      if (_sortOrder == 'This Week') {
+                        DateTime startOfWeek =
+                            now.subtract(Duration(days: now.weekday - 1));
+                        return date.isAfter(startOfWeek
+                                .subtract(const Duration(days: 1))) ||
+                            date.isAtSameMomentAs(startOfWeek);
+                      } else if (_sortOrder == 'This Month') {
+                        DateTime startOfMonth =
+                            DateTime(now.year, now.month, 1);
+                        return date.isAfter(startOfMonth
+                                .subtract(const Duration(days: 1))) ||
+                            date.isAtSameMomentAs(startOfMonth);
+                      }
+                    }
+                    return false;
                   }).toList();
-                  if (selectType != null) {
-                    filteredDocs.sort((a, b) {
-                      final timeA = a['timestamp'] as Timestamp?;
-                      final timeB = b['timestamp'] as Timestamp?;
+                  // Sort all filteredDocs
+                  filteredDocs.sort((a, b) {
+                    final timeA = a['timestamp'] as Timestamp?;
+                    final timeB = b['timestamp'] as Timestamp?;
 
-                      if (timeA == null || timeB == null) return 0;
+                    if (timeA == null || timeB == null) return 0;
 
-                      final comparison = timeB.compareTo(timeA);
-                      return _sortOrder == 'Latest' ? comparison : -comparison;
-                    });
-                  }
+                    final comparison = timeB.compareTo(timeA);
+                    return _sortOrder == 'Oldest' ? -comparison : comparison;
+                  });
                   if (filteredDocs.isEmpty && _searchQuery.isNotEmpty) {
                     return Center(
                       child: Text(
