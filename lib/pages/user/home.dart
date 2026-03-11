@@ -117,21 +117,20 @@ class _HomeState extends State<Home> {
               DrawerHeader(
                 child: Center(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        width: 72,
+                        height: 72,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
                               color: Theme.of(context).colorScheme.onPrimary),
-                        ),
-                        child: CircleAvatar(
-                          radius: 30,
-                          backgroundColor:
-                              Theme.of(context).colorScheme.onPrimary,
-                          child: Image.asset('assets/images/logo.jpg'),
+                          image: const DecorationImage(
+                            image: AssetImage('assets/images/logo.jpg'),
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
