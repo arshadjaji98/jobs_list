@@ -578,7 +578,6 @@ class _HomeState extends State<Home> {
                     }
                     return false;
                   }).toList();
-                  // Sort all filteredDocs
                   filteredDocs.sort((a, b) {
                     final timeA = a['timestamp'] as Timestamp?;
                     final timeB = b['timestamp'] as Timestamp?;
@@ -613,7 +612,6 @@ class _HomeState extends State<Home> {
                                 DateTime.now().difference(postedDate).inDays <=
                                     3;
                           }
-
                           return Center(
                             child: ConstrainedBox(
                               constraints: const BoxConstraints(maxWidth: 600),
