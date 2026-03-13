@@ -596,7 +596,6 @@ class _HomeState extends State<Home> {
                       ),
                     );
                   }
-
                   return RefreshIndicator(
                       child: ListView.builder(
                         physics: const BouncingScrollPhysics(),
