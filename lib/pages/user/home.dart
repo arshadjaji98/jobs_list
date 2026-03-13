@@ -30,6 +30,13 @@ class _HomeState extends State<Home> {
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
+  // New filter variables
+  String? selectedLocation;
+  double? minSalary;
+  double? maxSalary;
+  String? selectedJobType;
+  String? selectedExperienceLevel;
+
   List<Map<String, dynamic>> categories = [
     {"name": "Forces Jobs", "icon": Icons.security},
     {"name": "Govt Jobs", "icon": Icons.account_balance},
@@ -95,6 +102,12 @@ class _HomeState extends State<Home> {
     if (selectType != null) {
       collection = collection.where("type", isEqualTo: selectType);
     }
+    if (selectedJobType != null && selectedJobType != selectType) {
+      collection = collection.where("type", isEqualTo: selectedJobType);
+    }
+    if (selectedLocation != null) {
+      collection = collection.where("location", isEqualTo: selectedLocation);
+    }
 
     return collection.snapshots().handleError((error) {
       if (kDebugMode) {
@@ -102,6 +115,131 @@ class _HomeState extends State<Home> {
       }
       return const Stream.empty();
     });
+  }
+
+  void _showFilterModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text("Filters",
+                      style: Theme.of(context).textTheme.headlineSmall),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: selectedLocation,
+                    decoration: const InputDecoration(labelText: "Location"),
+                    items: [
+                      "Islamabad",
+                      "Lahore",
+                      "Karachi",
+                      "Peshawar",
+                      "Quetta"
+                    ]
+                        .map((loc) =>
+                            DropdownMenuItem(value: loc, child: Text(loc)))
+                        .toList(),
+                    onChanged: (value) =>
+                        setState(() => selectedLocation = value),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: minSalary?.toString(),
+                          decoration:
+                              const InputDecoration(labelText: "Min Salary"),
+                          keyboardType: TextInputType.number,
+                          onChanged: (value) =>
+                              minSalary = double.tryParse(value),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: maxSalary?.toString(),
+                          decoration:
+                              const InputDecoration(labelText: "Max Salary"),
+                          keyboardType: TextInputType.number,
+                          onChanged: (value) =>
+                              maxSalary = double.tryParse(value),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: selectedJobType,
+                    decoration: const InputDecoration(labelText: "Job Type"),
+                    items: [
+                      "Forces Jobs",
+                      "Govt Jobs",
+                      "Private Jobs",
+                      "Semi-Govt Jobs",
+                      "Others"
+                    ]
+                        .map((type) =>
+                            DropdownMenuItem(value: type, child: Text(type)))
+                        .toList(),
+                    onChanged: (value) =>
+                        setState(() => selectedJobType = value),
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    value: selectedExperienceLevel,
+                    decoration:
+                        const InputDecoration(labelText: "Experience Level"),
+                    items: ["Entry Level", "Mid Level", "Senior Level"]
+                        .map((exp) =>
+                            DropdownMenuItem(value: exp, child: Text(exp)))
+                        .toList(),
+                    onChanged: (value) =>
+                        setState(() => selectedExperienceLevel = value),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            selectedLocation = null;
+                            minSalary = null;
+                            maxSalary = null;
+                            selectedJobType = null;
+                            selectedExperienceLevel = null;
+                          });
+                          Navigator.pop(context);
+                          this.setState(() {});
+                        },
+                        child: const Text("Clear All"),
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          this.setState(() {});
+                        },
+                        child: const Text("Apply"),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -356,6 +494,19 @@ class _HomeState extends State<Home> {
             IconThemeData(color: Theme.of(context).colorScheme.onPrimary),
         actions: [
           InkWell(
+            onTap: () => _showFilterModal(context),
+            child: Container(
+              margin: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceVariant,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(Icons.filter_list,
+                  color: Theme.of(context).colorScheme.primary),
+            ),
+          ),
+          InkWell(
             onTap: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const Favorite()),
@@ -577,6 +728,18 @@ class _HomeState extends State<Home> {
                       }
                     }
                     return false;
+                  }).where((doc) {
+                    // Additional filters
+                    if (minSalary != null &&
+                        (doc['price'] is num) &&
+                        doc['price'] < minSalary!) return false;
+                    if (maxSalary != null &&
+                        (doc['price'] is num) &&
+                        doc['price'] > maxSalary!) return false;
+                    if (selectedExperienceLevel != null &&
+                        doc['experience'] != selectedExperienceLevel)
+                      return false;
+                    return true;
                   }).toList();
                   filteredDocs.sort((a, b) {
                     final timeA = a['timestamp'] as Timestamp?;

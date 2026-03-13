@@ -23,6 +23,8 @@ class Profile extends StatefulWidget {
 class _ProfileState extends State<Profile> {
   final ImagePicker _picker = ImagePicker();
   File? selectedImage;
+  File? selectedResume;
+  String? resumeUrl;
 
   Future getImage() async {
     var image = await _picker.pickImage(source: ImageSource.gallery);
@@ -30,6 +32,18 @@ class _ProfileState extends State<Profile> {
       selectedImage = File(image.path);
       setState(() {
         uploadItem();
+      });
+    }
+  }
+
+  Future getResume() async {
+    var file = await _picker.pickImage(
+        source: ImageSource
+            .gallery); // For simplicity, using image picker; in real app, use file picker for PDFs
+    if (file != null) {
+      selectedResume = File(file.path);
+      setState(() {
+        uploadResume();
       });
     }
   }
@@ -51,6 +65,28 @@ class _ProfileState extends State<Profile> {
       });
 
       setState(() {});
+    }
+  }
+
+  uploadResume() async {
+    if (selectedResume != null) {
+      String addId = randomAlphaNumeric(10);
+      Reference firebaseStorageRef =
+          FirebaseStorage.instance.ref().child("resumes").child(addId);
+      final UploadTask task = firebaseStorageRef.putFile(selectedResume!);
+
+      var downloadUrl = await (await task).ref.getDownloadURL();
+
+      FirebaseFirestore.instance
+          .collection("users")
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .update({
+        "resume_url": downloadUrl,
+      });
+
+      setState(() {
+        resumeUrl = downloadUrl;
+      });
     }
   }
 
@@ -127,12 +163,56 @@ class _ProfileState extends State<Profile> {
                     child: Column(
                       children: [
                         const SizedBox(height: 40),
+                        // Profile Image
+                        Center(
+                          child: Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: 60,
+                                backgroundImage: data["profile_image"] != null
+                                    ? NetworkImage(data["profile_image"])
+                                    : null,
+                                child: data["profile_image"] == null
+                                    ? Icon(Icons.person,
+                                        size: 60,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onPrimary)
+                                    : null,
+                              ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: CircleAvatar(
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.primary,
+                                  child: IconButton(
+                                    icon: Icon(Icons.camera_alt,
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onPrimary),
+                                    onPressed: getImage,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
                         if (widget.userId != null ||
                             FirebaseAuth.instance.currentUser != null)
                           _buildChangePasswordCard(context),
-                        _buildInfoCard(Icons.person, "Your Name", data["name"]),
-                        _buildInfoCard(
-                            Icons.email, "Your Email", data["email"]),
+                        _buildEditableInfoCard(
+                            Icons.person, "Your Name", data["name"], "name"),
+                        _buildEditableInfoCard(
+                            Icons.email, "Your Email", data["email"], "email"),
+                        _buildEditableInfoCard(
+                            Icons.info, "Bio", data["bio"], "bio"),
+                        _buildEditableInfoCard(
+                            Icons.work, "Skills", data["skills"], "skills"),
+                        _buildEditableInfoCard(Icons.work_outline, "Experience",
+                            data["experience"], "experience"),
+                        _buildResumeCard(context, data["resume_url"]),
                         const SizedBox(height: 30),
                       ],
                     ),
@@ -145,7 +225,59 @@ class _ProfileState extends State<Profile> {
     );
   }
 
-  Widget _buildInfoCard(IconData icon, String label, String? value) {
+  Widget _buildEditableInfoCard(
+      IconData icon, String label, String? value, String field) {
+    return GestureDetector(
+      onTap: () => _editField(context, label, value ?? "", field),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Theme.of(context).shadowColor.withOpacity(0.06),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            )
+          ],
+        ),
+        child: Row(
+          children: [
+            CircleAvatar(
+                backgroundColor: Theme.of(context).colorScheme.primary,
+                child:
+                    Icon(icon, color: Theme.of(context).colorScheme.onPrimary)),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodyMedium
+                          ?.copyWith(fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 4),
+                  Text(
+                    value ?? "Not set",
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyLarge
+                        ?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.edit, color: Theme.of(context).colorScheme.primary),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResumeCard(BuildContext context, String? resumeUrl) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: const EdgeInsets.all(16),
@@ -164,30 +296,68 @@ class _ProfileState extends State<Profile> {
         children: [
           CircleAvatar(
               backgroundColor: Theme.of(context).colorScheme.primary,
-              child:
-                  Icon(icon, color: Theme.of(context).colorScheme.onPrimary)),
+              child: Icon(Icons.description,
+                  color: Theme.of(context).colorScheme.onPrimary)),
           const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Resume",
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w500)),
+                const SizedBox(height: 4),
+                Text(
+                  resumeUrl != null ? "Uploaded" : "Not uploaded",
                   style: Theme.of(context)
                       .textTheme
-                      .bodyMedium
-                      ?.copyWith(fontWeight: FontWeight.w500)),
-              const SizedBox(height: 4),
-              Text(
-                value ?? "Not set",
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyLarge
-                    ?.copyWith(fontWeight: FontWeight.w600),
-              ),
-            ],
-          )
+                      .bodyLarge
+                      ?.copyWith(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.upload,
+                color: Theme.of(context).colorScheme.primary),
+            onPressed: getResume,
+          ),
         ],
       ),
     );
+  }
+
+  void _editField(BuildContext context, String label, String currentValue,
+      String field) async {
+    TextEditingController controller =
+        TextEditingController(text: currentValue);
+    String? newValue = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Edit $label"),
+        content: TextField(
+          controller: controller,
+          decoration: InputDecoration(hintText: "Enter $label"),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel")),
+          TextButton(
+            onPressed: () => Navigator.pop(context, controller.text.trim()),
+            child: const Text("Save"),
+          ),
+        ],
+      ),
+    );
+    if (newValue != null && newValue != currentValue) {
+      FirebaseFirestore.instance
+          .collection("users")
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .update({field: newValue});
+    }
   }
 }
 

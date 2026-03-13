@@ -14,6 +14,17 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
     }
+
+    resolutionStrategy {
+        eachPlugin {
+            if (pluginRequest.id.id == 'com.android.application') {
+                useVersion '8.10.0'
+            }
+            if (pluginRequest.id.id == 'com.android.library') {
+                useVersion '8.10.0'
+            }
+        }
+    }
 }
 
 plugins {
