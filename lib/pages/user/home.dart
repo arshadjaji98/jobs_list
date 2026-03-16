@@ -732,13 +732,18 @@ class _HomeState extends State<Home> {
                     // Additional filters
                     if (minSalary != null &&
                         (doc['price'] is num) &&
-                        doc['price'] < minSalary!) return false;
+                        doc['price'] < minSalary!) {
+                      return false;
+                    }
                     if (maxSalary != null &&
                         (doc['price'] is num) &&
-                        doc['price'] > maxSalary!) return false;
-                    if (selectedExperienceLevel != null &&
-                        doc['experience'] != selectedExperienceLevel)
+                        doc['price'] > maxSalary!) {
                       return false;
+                    }
+                    if (selectedExperienceLevel != null &&
+                        doc['experience'] != selectedExperienceLevel) {
+                      return false;
+                    }
                     return true;
                   }).toList();
                   filteredDocs.sort((a, b) {

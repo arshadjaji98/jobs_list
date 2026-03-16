@@ -57,11 +57,15 @@ class _ProfileState extends State<Profile> {
 
       var downloadUrl = await (await task).ref.getDownloadURL();
 
+      // Add cache buster to force image reload
+      String cacheBuster = DateTime.now().millisecondsSinceEpoch.toString();
+      String updatedUrl = "$downloadUrl?v=$cacheBuster";
+
       FirebaseFirestore.instance
           .collection("users")
           .doc(FirebaseAuth.instance.currentUser!.uid)
           .update({
-        "profile_image": downloadUrl,
+        "profile_image": updatedUrl,
       });
 
       setState(() {});
@@ -364,14 +368,14 @@ class _ProfileState extends State<Profile> {
 Widget _buildChangePasswordCard(BuildContext context) {
   return GestureDetector(
     onTap: () async {
-      TextEditingController _passwordController = TextEditingController();
+      TextEditingController passwordController = TextEditingController();
 
       bool? changed = await showDialog(
         context: context,
         builder: (context) => AlertDialog(
           title: const Text("Change Password"),
           content: TextField(
-            controller: _passwordController,
+            controller: passwordController,
             obscureText: true,
             decoration: const InputDecoration(
               hintText: "Enter new password",
@@ -383,7 +387,7 @@ Widget _buildChangePasswordCard(BuildContext context) {
                 child: const Text("Cancel")),
             TextButton(
                 onPressed: () async {
-                  String newPassword = _passwordController.text.trim();
+                  String newPassword = passwordController.text.trim();
                   if (newPassword.length < 6) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
