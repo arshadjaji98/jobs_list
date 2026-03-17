@@ -30,7 +30,6 @@ class _HomeState extends State<Home> {
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
-  // New filter variables
   String? selectedLocation;
   double? minSalary;
   double? maxSalary;
