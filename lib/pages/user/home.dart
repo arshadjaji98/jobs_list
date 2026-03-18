@@ -15,6 +15,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:intl/intl.dart';
 import 'package:groceryease_delivery_application/services/theme_service.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:groceryease_delivery_application/services/local_database_service.dart';
+import 'dart:async';
 
 class Home extends StatefulWidget {
   final List? favourite;
@@ -47,10 +50,24 @@ class _HomeState extends State<Home> {
   String? selectType;
   String _sortOrder = 'Latest';
 
+  Connectivity _connectivity = Connectivity();
+  List<Map<String, dynamic>> _jobs = [];
+  bool _isOnline = true;
+  StreamSubscription? _subscription;
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
     fetchUsername();
+    _connectivity.onConnectivityChanged.listen((result) {
+      bool wasOnline = _isOnline;
+      _isOnline = result != ConnectivityResult.none;
+      if (!wasOnline && _isOnline) {
+        _loadData();
+      }
+    });
+    _loadData();
   }
 
   String formatPostedDate(dynamic ts) {
@@ -73,6 +90,7 @@ class _HomeState extends State<Home> {
   @override
   void dispose() {
     _searchController.dispose();
+    _subscription?.cancel();
     super.dispose();
   }
 
@@ -92,6 +110,29 @@ class _HomeState extends State<Home> {
       if (kDebugMode) {
         print('Error fetching username: $e');
       }
+    }
+  }
+
+  Future<void> _loadData() async {
+    var connectivityResult = await _connectivity.checkConnectivity();
+    _isOnline = connectivityResult != ConnectivityResult.none;
+    if (_isOnline) {
+      _jobs = await LocalDatabaseService().getJobs(); // load cached first
+      _isLoading = false;
+      setState(() {});
+      // then listen to stream
+      _subscription = getFilteredProducts().listen((snapshot) {
+        _jobs = snapshot.docs
+            .map((doc) => {...doc.data() as Map<String, dynamic>, 'id': doc.id})
+            .toList();
+        LocalDatabaseService().insertJobs(_jobs);
+        _isLoading = false;
+        setState(() {});
+      });
+    } else {
+      _jobs = await LocalDatabaseService().getJobs();
+      _isLoading = false;
+      setState(() {});
     }
   }
 
@@ -238,6 +279,308 @@ class _HomeState extends State<Home> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildJobList() {
+    if (_isLoading) {
+      return ListView.builder(
+        itemCount: 5,
+        itemBuilder: (context, index) {
+          return Card(
+            margin: const EdgeInsets.only(bottom: 16),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Container(
+              height: 250,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                      height: 150,
+                      color: Theme.of(context).colorScheme.surfaceVariant),
+                  const SizedBox(height: 12),
+                  Container(
+                      height: 16,
+                      width: 200,
+                      color: Theme.of(context).colorScheme.surfaceVariant),
+                  const SizedBox(height: 8),
+                  Container(
+                      height: 14,
+                      width: 120,
+                      color: Theme.of(context).colorScheme.surfaceVariant),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    }
+    // apply filters
+    var filteredJobs = _jobs.where((job) {
+      if (selectType != null && job['type'] != selectType) return false;
+      if (selectedJobType != null &&
+          selectedJobType != selectType &&
+          job['type'] != selectedJobType) return false;
+      if (selectedLocation != null && job['location'] != selectedLocation)
+        return false;
+      if (_searchQuery.isNotEmpty) {
+        final jobName = (job['name'] ?? '').toString().toLowerCase();
+        final jobDetail = (job['detail'] ?? '').toString().toLowerCase();
+        final searchLower = _searchQuery.toLowerCase();
+        if (!jobName.contains(searchLower) && !jobDetail.contains(searchLower))
+          return false;
+      }
+      double price = double.tryParse(job['price'].toString()) ?? 0.0;
+      if (minSalary != null && price < minSalary!) return false;
+      if (maxSalary != null && price > maxSalary!) return false;
+      if (selectedExperienceLevel != null &&
+          job['experience'] != selectedExperienceLevel) return false;
+      // sort order
+      if (_sortOrder == 'This Week' || _sortOrder == 'This Month') {
+        final ts = job['timestamp'];
+        if (ts is Timestamp) {
+          DateTime date = ts.toDate();
+          DateTime now = DateTime.now();
+          if (_sortOrder == 'This Week') {
+            DateTime startOfWeek =
+                now.subtract(Duration(days: now.weekday - 1));
+            if (!(date.isAfter(startOfWeek.subtract(const Duration(days: 1))) ||
+                date.isAtSameMomentAs(startOfWeek))) return false;
+          } else if (_sortOrder == 'This Month') {
+            DateTime startOfMonth = DateTime(now.year, now.month, 1);
+            if (!(date
+                    .isAfter(startOfMonth.subtract(const Duration(days: 1))) ||
+                date.isAtSameMomentAs(startOfMonth))) return false;
+          }
+        } else {
+          return false;
+        }
+      }
+      return true;
+    }).toList();
+    // sort
+    filteredJobs.sort((a, b) {
+      final timeA = a['timestamp'] as Timestamp?;
+      final timeB = b['timestamp'] as Timestamp?;
+      if (timeA == null || timeB == null) return 0;
+      final comparison = timeB.compareTo(timeA);
+      return _sortOrder == 'Oldest' ? -comparison : comparison;
+    });
+    if (filteredJobs.isEmpty) {
+      return Center(
+        child: Text(
+          _searchQuery.isEmpty
+              ? "No current job available"
+              : "No job found for '$_searchQuery'",
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+      );
+    }
+    return RefreshIndicator(
+      onRefresh: _isOnline
+          ? () async {
+              // refresh from Firestore
+              var snapshot =
+                  await FirebaseFirestore.instance.collection("products").get();
+              _jobs = snapshot.docs
+                  .map((doc) => {...doc.data(), 'id': doc.id})
+                  .toList();
+              await LocalDatabaseService().insertJobs(_jobs);
+              setState(() {});
+            }
+          : () async {},
+      child: ListView.builder(
+        physics: const BouncingScrollPhysics(),
+        itemCount: filteredJobs.length,
+        itemBuilder: (context, index) {
+          var job = filteredJobs[index];
+          bool isNew = false;
+          if (job['timestamp'] != null && job['timestamp'] is Timestamp) {
+            final postedDate = (job['timestamp'] as Timestamp).toDate();
+            isNew = DateTime.now().difference(postedDate).inDays <= 3;
+          }
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 600),
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    PageTransition(
+                      type: PageTransitionType.sharedAxisVertical,
+                      alignment: Alignment.center,
+                      duration: const Duration(milliseconds: 400),
+                      child: Details(
+                        image: job['image'],
+                        name: job['name'],
+                        details: job['detail'],
+                        price: job['price'].toString(),
+                        id: job['id'],
+                        stock: job['quantity'].toString(),
+                        adminId: job['adminId'],
+                        type: job['type'],
+                        location: job['location'],
+                        postedDate: job['timestamp'],
+                        vacancies: job['vacancies'],
+                        favourite: const [],
+                      ),
+                    ),
+                  );
+                },
+                child: Card(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  elevation: 4,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(16)),
+                        child: SizedBox(
+                          height: 180,
+                          width: double.infinity,
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              CachedNetworkImage(
+                                imageUrl: job["image"],
+                                fit: BoxFit.cover,
+                                placeholder: (context, url) => Container(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .surfaceVariant,
+                                  height: 180,
+                                ),
+                                errorWidget: (context, url, error) =>
+                                    const Icon(Icons.error, size: 50),
+                              ),
+                              if (isNew)
+                                Positioned(
+                                  top: 8,
+                                  right: 8,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Text(
+                                      "NEW",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(job["name"],
+                                style: AppWidgets.boldTextFieldStyle(context)),
+                            const SizedBox(height: 15),
+                            Row(
+                              children: [
+                                Icon(Icons.calendar_today,
+                                    size: 18,
+                                    color: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.color),
+                                const SizedBox(width: 6),
+                                Text(
+                                  "Last Date: ${job["price"]}",
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(Icons.location_on,
+                                        size: 18,
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.color),
+                                    const SizedBox(width: 4),
+                                    ConstrainedBox(
+                                      constraints:
+                                          const BoxConstraints(maxWidth: 220),
+                                      child: Text(
+                                        "Location: ${job["location"]}",
+                                        overflow: TextOverflow.ellipsis,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              fontSize: 13,
+                                              color: Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Icon(Icons.people,
+                                        size: 18,
+                                        color: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.color),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      "Vacancies: ${job["vacancies"]}",
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            fontSize: 13,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -609,386 +952,7 @@ class _HomeState extends State<Home> {
               ),
             ),
             const SizedBox(height: 10),
-            Expanded(
-              child: StreamBuilder(
-                stream: getFilteredProducts(),
-                builder: (context, AsyncSnapshot snapshot) {
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.error_outline,
-                              color: Theme.of(context).colorScheme.error,
-                              size: 48),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Error: ${snapshot.error}',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          if (snapshot.error.toString().contains('index'))
-                            const Text(
-                              'Missing composite index.\nPlease check Firebase Console logs.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 12),
-                            ),
-                        ],
-                      ),
-                    );
-                  }
-                  if (snapshot.connectionState == ConnectionState.waiting &&
-                      !snapshot.hasData) {
-                    return ListView.builder(
-                      itemCount: 5,
-                      itemBuilder: (context, index) {
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16)),
-                          child: Container(
-                            height: 250,
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  height: 150,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .surfaceVariant,
-                                ),
-                                const SizedBox(height: 12),
-                                Container(
-                                    height: 16,
-                                    width: 200,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .surfaceVariant),
-                                const SizedBox(height: 8),
-                                Container(
-                                    height: 14,
-                                    width: 120,
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .surfaceVariant),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  }
-                  if (!snapshot.hasData || snapshot.data.docs.isEmpty) {
-                    return Center(
-                      child: Text(
-                        _searchQuery.isEmpty
-                            ? "No current job available"
-                            : "No job found for '$_searchQuery'",
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                    );
-                  }
-                  DateTime now = DateTime.now();
-                  final filteredDocs = snapshot.data.docs.where((doc) {
-                    if (_searchQuery.isEmpty) return true;
-                    final jobName =
-                        (doc['name'] ?? '').toString().toLowerCase();
-                    final jobDetail =
-                        (doc['detail'] ?? '').toString().toLowerCase();
-                    final searchLower = _searchQuery.toLowerCase();
-                    return jobName.contains(searchLower) ||
-                        jobDetail.contains(searchLower);
-                  }).where((doc) {
-                    if (_sortOrder == 'Latest' || _sortOrder == 'Oldest') {
-                      return true;
-                    }
-                    final ts = doc['timestamp'];
-                    if (ts is Timestamp) {
-                      DateTime date = ts.toDate();
-                      if (_sortOrder == 'This Week') {
-                        DateTime startOfWeek =
-                            now.subtract(Duration(days: now.weekday - 1));
-                        return date.isAfter(startOfWeek
-                                .subtract(const Duration(days: 1))) ||
-                            date.isAtSameMomentAs(startOfWeek);
-                      } else if (_sortOrder == 'This Month') {
-                        DateTime startOfMonth =
-                            DateTime(now.year, now.month, 1);
-                        return date.isAfter(startOfMonth
-                                .subtract(const Duration(days: 1))) ||
-                            date.isAtSameMomentAs(startOfMonth);
-                      }
-                    }
-                    return false;
-                  }).where((doc) {
-                    // Additional filters
-                    if (minSalary != null &&
-                        (doc['price'] is num) &&
-                        doc['price'] < minSalary!) {
-                      return false;
-                    }
-                    if (maxSalary != null &&
-                        (doc['price'] is num) &&
-                        doc['price'] > maxSalary!) {
-                      return false;
-                    }
-                    if (selectedExperienceLevel != null &&
-                        doc['experience'] != selectedExperienceLevel) {
-                      return false;
-                    }
-                    return true;
-                  }).toList();
-                  filteredDocs.sort((a, b) {
-                    final timeA = a['timestamp'] as Timestamp?;
-                    final timeB = b['timestamp'] as Timestamp?;
-
-                    if (timeA == null || timeB == null) return 0;
-
-                    final comparison = timeB.compareTo(timeA);
-                    return _sortOrder == 'Oldest' ? -comparison : comparison;
-                  });
-                  if (filteredDocs.isEmpty && _searchQuery.isNotEmpty) {
-                    return Center(
-                      child: Text(
-                        "No job found for '$_searchQuery'",
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 16),
-                      ),
-                    );
-                  }
-                  return RefreshIndicator(
-                      child: ListView.builder(
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: filteredDocs.length,
-                        itemBuilder: (context, index) {
-                          DocumentSnapshot ds = filteredDocs[index];
-                          bool isNew = false;
-                          if (ds['timestamp'] != null &&
-                              ds['timestamp'] is Timestamp) {
-                            final postedDate =
-                                (ds['timestamp'] as Timestamp).toDate();
-                            isNew =
-                                DateTime.now().difference(postedDate).inDays <=
-                                    3;
-                          }
-                          return Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 600),
-                              child: GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    PageTransition(
-                                      type:
-                                          PageTransitionType.sharedAxisVertical,
-                                      alignment: Alignment.center,
-                                      duration:
-                                          const Duration(milliseconds: 400),
-                                      child: Details(
-                                        image: ds['image'],
-                                        name: ds['name'],
-                                        details: ds['detail'],
-                                        price: ds['price'].toString(),
-                                        id: ds['id'],
-                                        stock: ds['quantity'].toString(),
-                                        adminId: ds['adminId'],
-                                        type: ds['type'],
-                                        location: ds['location'],
-                                        postedDate: ds['timestamp'],
-                                        vacancies: ds['vacancies'],
-                                        favourite: const [],
-                                      ),
-                                    ),
-                                  );
-                                },
-                                child: Card(
-                                  margin: const EdgeInsets.only(bottom: 16),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16)),
-                                  elevation: 4,
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      ClipRRect(
-                                        borderRadius:
-                                            const BorderRadius.vertical(
-                                                top: Radius.circular(16)),
-                                        child: SizedBox(
-                                          height: 180,
-                                          width: double.infinity,
-                                          child: Stack(
-                                            fit: StackFit.expand,
-                                            children: [
-                                              CachedNetworkImage(
-                                                imageUrl: ds["image"],
-                                                fit: BoxFit.cover,
-                                                placeholder: (context, url) =>
-                                                    Container(
-                                                        color: Theme.of(context)
-                                                            .colorScheme
-                                                            .surfaceVariant,
-                                                        height: 180),
-                                                errorWidget:
-                                                    (context, url, error) =>
-                                                        const Icon(Icons.error,
-                                                            size: 50),
-                                              ),
-                                              if (isNew)
-                                                Positioned(
-                                                  top: 8,
-                                                  right: 8,
-                                                  child: Container(
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 8,
-                                                        vertical: 4),
-                                                    decoration: BoxDecoration(
-                                                      color: Theme.of(context)
-                                                          .colorScheme
-                                                          .primary,
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
-                                                    ),
-                                                    child: const Text(
-                                                      "NEW",
-                                                      style: TextStyle(
-                                                        color: Colors.white,
-                                                        fontSize: 12,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(12),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Text(ds["name"],
-                                                style: AppWidgets
-                                                    .boldTextFieldStyle(
-                                                        context)),
-                                            const SizedBox(height: 15),
-                                            Row(
-                                              children: [
-                                                Icon(Icons.calendar_today,
-                                                    size: 18,
-                                                    color: Theme.of(context)
-                                                        .textTheme
-                                                        .bodySmall
-                                                        ?.color),
-                                                const SizedBox(width: 6),
-                                                Text(
-                                                  "Last Date: ${ds["price"]}",
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodySmall
-                                                      ?.copyWith(
-                                                          fontWeight:
-                                                              FontWeight.w500),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 6),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Row(
-                                                  children: [
-                                                    Icon(Icons.location_on,
-                                                        size: 18,
-                                                        color: Theme.of(context)
-                                                            .textTheme
-                                                            .bodySmall
-                                                            ?.color),
-                                                    const SizedBox(width: 4),
-                                                    ConstrainedBox(
-                                                      constraints:
-                                                          const BoxConstraints(
-                                                              maxWidth: 220),
-                                                      child: Text(
-                                                        "Location: ${ds["location"]}",
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        style: Theme.of(context)
-                                                            .textTheme
-                                                            .bodySmall
-                                                            ?.copyWith(
-                                                                fontSize: 13,
-                                                                color: Theme.of(
-                                                                        context)
-                                                                    .colorScheme
-                                                                    .primary,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w500),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                Row(
-                                                  children: [
-                                                    Icon(Icons.people,
-                                                        size: 18,
-                                                        color: Theme.of(context)
-                                                            .textTheme
-                                                            .bodySmall
-                                                            ?.color),
-                                                    const SizedBox(width: 4),
-                                                    Text(
-                                                      "Vacancies: ${ds["vacancies"]}",
-                                                      style: Theme.of(context)
-                                                          .textTheme
-                                                          .bodySmall
-                                                          ?.copyWith(
-                                                              fontSize: 13,
-                                                              color: Theme.of(
-                                                                      context)
-                                                                  .colorScheme
-                                                                  .primary,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w500),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 8),
-                                          ],
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                      onRefresh: () async {
-                        setState(() {});
-                      });
-                },
-              ),
-            ),
+            Expanded(child: _buildJobList()),
           ],
         ),
       ),
